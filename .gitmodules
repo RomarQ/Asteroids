@@ -19,6 +19,5 @@
     url = https://github.com/nothings/stb.git
     branch = master
 [submodule "Asteroids/Vendor/bullet3"]
-    path = Asteroids/Vendor/bullet3
-    url = https://github.com/bulletphysics/bullet3.git
-    branch = master
+	path = Asteroids/Vendor/bullet3
+	url = https://github.com/bulletphysics/bullet3.git
