@@ -11,12 +11,12 @@ option(ASSIMP_BUILD_SAMPLES OFF)
 option(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(Asteroids/Vendor/assimp)
 
-option(BUILD_BULLET2_DEMOS OFF)
+option(BUILD_BULLET3_DEMOS OFF)
 option(BUILD_CPU_DEMOS OFF)
 option(BUILD_EXTRAS OFF)
 option(BUILD_OPENGL3_DEMOS OFF)
 option(BUILD_UNIT_TESTS OFF)
-add_subdirectory(Asteroids/Vendor/bullet)
+add_subdirectory(Asteroids/Vendor/bullet3)
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
@@ -29,7 +29,7 @@ endif()
 
 include_directories(Asteroids/Headers/
                     Asteroids/Vendor/assimp/include/
-                    Asteroids/Vendor/bullet/src/
+                    Asteroids/Vendor/bullet3/src/
                     Asteroids/Vendor/glad/include/
                     Asteroids/Vendor/glfw/include/
                     Asteroids/Vendor/glm/
