@@ -1,0 +1,6 @@
+Name: bullet_robotics
+Description: Bullet extras that include several utilities for robotics including a urdf parser
+Requires: bullet
+Version: 2.88
+Libs: -L/usr/local/lib -lBulletRobotics
+Cflags: -DBT_USE_DOUBLE_PRECISION -I/usr/local/include/bullet -I/usr/local/include/bullet_robotics
