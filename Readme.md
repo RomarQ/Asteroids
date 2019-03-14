@@ -8,6 +8,7 @@ School Project [ Will fill this later ]
 ```bash
 $ git clone --recursive https://github.com/RoMarQ/Asteroids
 $ cd Asteroids
+$ mkdir Build
 $ cd Build
 
 # UNIX Makefile
