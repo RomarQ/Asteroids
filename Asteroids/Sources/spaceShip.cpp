@@ -1,14 +1,20 @@
 #include "spaceShip.hpp"
 #include "shader.hpp"
 
-#include <iostream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <stb_image.h>
+
+#include <iostream>
+
 
 float vertices[] = {
     // positions        // colors           // texture coords
-    0.03f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-    -0.03f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.3f,   // bottom left
-    0.0f,  0.1f, 0.0f,  1.0f, 1.0f, 0.0f,   0.5f, 1.0f    // top
+    0.0f, 0.03f,  0.0f, 0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+    0.0f, -0.03f, 0.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.3f,   // bottom left
+    0.1f, 0.0f,   0.0f, 1.0f, 1.0f, 0.0f,   0.5f, 1.0f    // top
 };
 
 unsigned int indices[] = {
@@ -101,7 +107,6 @@ SpaceShip::SpaceShip(const char* vertexShaser, const char* fragmentShader) : sha
     shader.use(); // don't forget to activate the shader before setting uniforms!  
     shader.setInt("texture1", 0);
     shader.setInt("texture2", 1);
-      
 }
 
 void SpaceShip::render()
@@ -112,42 +117,71 @@ void SpaceShip::render()
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture2);
 
+    // create transformations
+    glm::mat4 transform = glm::mat4(1.0f);
+    transform = glm::translate(transform, glm::vec3(xOffSet, yOffSet, 0.0f));
+    transform = glm::rotate(transform, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+    transform = glm::translate(transform, glm::vec3(-xOffSet, -yOffSet, 0.0f));
+
     // render the Space Ship
     shader.use();
+
+    shader.setMat4("transform", transform);
+    std::cout <<"angle: "<<angle<<" x: "<<xOffSet<<" y: "<<yOffSet<<"(x, y): "<<sqrt(xOffSet*xOffSet + yOffSet*yOffSet)<< std::endl;
+
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 }
 
 void SpaceShip::moveForward()
-{
-    if(yOffSet > 1.0f)
-    {
-      yOffSet = -1.0f;
-    } else if(yOffSet < -1.0f)
-    {
-      yOffSet = 1.0f;
-    } else {
-      yOffSet += speed;
-    }
+{ 
+    xOffSet += cos(angle) * speed;
+    yOffSet += sin(angle) * speed;
+
+    adjustOffSets();
     
-    std::cout << yOffSet << std::endl;
+    shader.setFloat("xOffset", xOffSet);
     shader.setFloat("yOffset", yOffSet);
 }
 
 void SpaceShip::moveBackward()
 {
-    if(yOffSet > 1.0f)
-    {
-      yOffSet = -1.0f;
-    } else if(yOffSet < -1.0f)
-    {
-      yOffSet = 1.0f;
-    } else {
-      yOffSet -= speed;
-    }
+    xOffSet -= cos(angle) * speed;
+    yOffSet -= sin(angle) * speed;
+  
+    adjustOffSets();
     
-    std::cout << yOffSet << std::endl;
+    shader.setFloat("xOffset", xOffSet);
     shader.setFloat("yOffset", yOffSet);
+}
+
+void SpaceShip::adjustOffSets()
+{
+    if(xOffSet > 1.0f || xOffSet < -1.0f)
+    {
+      xOffSet *= -1.0f;
+    }
+
+    if(yOffSet > 1.0f || yOffSet < -1.0f)
+    {
+      yOffSet *= -1.0f;
+    }
+}
+
+void SpaceShip::rotateLeft()
+{
+    angle += rotation_speed;
+    glm::mat4 trans = glm::mat4(1.0f);
+    trans = glm::rotate(trans, glm::radians(angle), glm::vec3(0.0, 0.0, 1.0));
+    
+    std::cout << angle << std::endl;
+    unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+}
+
+void SpaceShip::rotateRight()
+{
+    angle -= rotation_speed;
 }
 
 void SpaceShip::use() const

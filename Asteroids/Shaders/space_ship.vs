@@ -11,9 +11,11 @@ out vec2 texCoord2;
 uniform float xOffset;
 uniform float yOffset;
 
+uniform mat4 transform;
+
 void main()
 {
-    gl_Position = vec4(aPos.x + xOffset, aPos.y + yOffset, aPos.z, 1.0f);
+    gl_Position = transform * vec4(aPos.x + xOffset, aPos.y + yOffset, aPos.z, 1.0f);
     color = aColor;
     texCoord1 = vec2(inTexCoord.x, inTexCoord.y);
     texCoord2 = vec2(inTexCoord.x, inTexCoord.y);

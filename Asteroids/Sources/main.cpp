@@ -1,5 +1,5 @@
 // Local Headers
-#include "glitter.hpp"
+#include "game.hpp"
 #include "shader.hpp"
 #include "spaceShip.hpp"
 
@@ -67,7 +67,7 @@ int main() {
         processInput(window);
 
         // { Begin of Render Logic        
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         spaceShip->render();
@@ -94,16 +94,25 @@ void processInput(GLFWwindow *window)
     {
         glfwSetWindowShouldClose(window, true);
     } 
-    else if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
     {   
         std::cout << "UP" << std::endl;
         spaceShip->moveForward();
-        return;
     }
-    else if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
     {   
         std::cout << "DOWN" << std::endl;
         spaceShip->moveBackward();
+    }
+    if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    {   
+        std::cout << "LEFT" << std::endl;
+        spaceShip->rotateLeft();
+    }
+    if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    {   
+        std::cout << "RIGHT" << std::endl;
+        spaceShip->rotateRight();
     }
 
     if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
