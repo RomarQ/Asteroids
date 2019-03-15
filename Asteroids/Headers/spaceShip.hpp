@@ -10,10 +10,16 @@ class SpaceShip
         float angle = 0.0f;
         float speed = 0.005f;
 
+        unsigned int VBO, VAO, EBO;
+        unsigned int texture1, texture2;
+
     public:
         Shader shader;
 
         SpaceShip(const char* vertexShaser, const char* fragmentShader);
+        ~SpaceShip();
+
+        void render();
 
         void moveForward();
         void moveBackward();
