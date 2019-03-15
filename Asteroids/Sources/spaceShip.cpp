@@ -4,9 +4,9 @@
 #include <iostream>
 
 // Constructor
-SpaceShip::SpaceShip(const char* vertexShaser, const char* fragmentShader) : spaceShip(Shader(vertexShaser, fragmentShader))
+SpaceShip::SpaceShip(const char* vertexShaser, const char* fragmentShader) : shader(Shader(vertexShaser, fragmentShader))
 {
-    spaceShip.setFloat("yOffSet", 1.0f);
+    shader.setFloat("yOffSet", 1.0f);
 }
 
 void SpaceShip::moveForward()
@@ -22,10 +22,26 @@ void SpaceShip::moveForward()
     }
     
     std::cout << yOffSet << std::endl;
-    spaceShip.setFloat("yOffset", yOffSet);
+    shader.setFloat("yOffset", yOffSet);
 }
 
-void SpaceShip::use() 
+void SpaceShip::moveBackward()
+{
+    if(yOffSet > 1.0f)
+    {
+      yOffSet = -1.0f;
+    } else if(yOffSet < -1.0f)
+    {
+      yOffSet = 1.0f;
+    } else {
+      yOffSet -= speed;
+    }
+    
+    std::cout << yOffSet << std::endl;
+    shader.setFloat("yOffset", yOffSet);
+}
+
+void SpaceShip::use() const
 { 
-    spaceShip.use();
+    shader.use();
 }
