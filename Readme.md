@@ -1,5 +1,9 @@
 # Asteroid
 
+## Progress
+
+![Screenshot](progress.gif)
+
 ## Summary
 School Project [ Will fill this later ]
 
