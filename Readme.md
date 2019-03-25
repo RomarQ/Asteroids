@@ -13,7 +13,9 @@ School Project [ Will fill this later ]
 $ git clone --recursive https://github.com/RoMarQ/Asteroids
 $ cd Asteroids
 $ mkdir Build
-$ cd Build
+$ cd Asteroids/Vendor/glad/ && cmake . && make
+$ cd ../bullet/ && cmake . && make
+$ cd ../../../Build/
 
 # UNIX Makefile
 $ cmake ..
