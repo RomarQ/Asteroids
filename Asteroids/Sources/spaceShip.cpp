@@ -9,22 +9,9 @@
 
 #include <iostream>
 
-
-float vertices[] = {
-    // positions        // colors           // texture coords
-    0.0f, 0.03f,  0.0f, 0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-    0.0f, -0.03f, 0.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.3f,   // bottom left
-    0.1f, 0.0f,   0.0f, 1.0f, 1.0f, 0.0f,   0.5f, 1.0f    // top
-};
-
-unsigned int indices[] = {
-    0, 1, 2
-};
-
 // Constructor
-SpaceShip::SpaceShip(const char* vertexShaser, const char* fragmentShader) : shader(Shader(vertexShaser, fragmentShader))
+SpaceShip::SpaceShip(const char* vertexShaser, const char* fragmentShader) : shader(vertexShaser, fragmentShader)
 {
-    shader.setFloat("yOffSet", 1.0f);
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
@@ -50,9 +37,8 @@ SpaceShip::SpaceShip(const char* vertexShaser, const char* fragmentShader) : sha
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-    // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    // glBindVertexArray(0);
+    // unbinding the VAO so other VAO calls won't accidentally modify this VAO
+    glBindVertexArray(0);
 
     // load and create a texture 
     // -------------------------
@@ -104,13 +90,16 @@ SpaceShip::SpaceShip(const char* vertexShaser, const char* fragmentShader) : sha
     }
     stbi_image_free(data);
 
-    shader.use(); // don't forget to activate the shader before setting uniforms!  
+    shader.use();
     shader.setInt("texture1", 0);
     shader.setInt("texture2", 1);
 }
 
 void SpaceShip::render()
 {
+    // activate shader
+    shader.use();
+
     // bind Texture
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture1);
@@ -123,11 +112,10 @@ void SpaceShip::render()
     transform = glm::rotate(transform, angle, glm::vec3(0.0f, 0.0f, 1.0f));
     transform = glm::translate(transform, glm::vec3(-xOffSet, -yOffSet, 0.0f));
 
-    // render the Space Ship
-    shader.use();
-
     shader.setMat4("transform", transform);
-    std::cout <<"angle: "<<angle<<" x: "<<xOffSet<<" y: "<<yOffSet<<"(x, y): "<<sqrt(xOffSet*xOffSet + yOffSet*yOffSet)<< std::endl;
+    
+    // DEBUG
+    //std::cout <<"angle: "<<angle<<" x: "<<xOffSet<<" y: "<<yOffSet<<"(x, y): "<<sqrt(xOffSet*xOffSet + yOffSet*yOffSet)<< std::endl;
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
