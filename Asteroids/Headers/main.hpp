@@ -21,16 +21,11 @@
 #include <stb_image.h>
 
 // Prototypes
-void framebuffer_size_callback(GLFWwindow*, int, int);
-void processInput(GLFWwindow*);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-
 void showFPS(GLFWwindow* window);
 
 // Constants
-const float mWidth = 900;
-const float mHeight = 600;
+const float mWidth = 1024;
+const float mHeight = 578;
 const char* APP_TITLE = "Asteroids";
 
 #endif

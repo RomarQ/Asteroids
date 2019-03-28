@@ -9,179 +9,136 @@
 
 #include <iostream>
 
-// Constructor
-SpaceShip::SpaceShip(const char* vertexShaser, const char* fragmentShader) : shader(vertexShaser, fragmentShader)
-{
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
+namespace SpaceShips {
+    /*
+    * Ship Model
+    */
+    Model *model;
 
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    // texture coord attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    // unbinding the VAO so other VAO calls won't accidentally modify this VAO
-    glBindVertexArray(0);
-
-    // load and create a texture 
-    // -------------------------
-    glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
-    int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    
-    unsigned char *data = stbi_load("../Asteroids/Textures/aluminium-foil2.jpg", &width, &height, &nrChannels, 0); 
-
-    if (data)
+    // Constructor
+    SpaceShip::SpaceShip(const char* vertexShader, const char* fragmentShader) : shader(vertexShader, fragmentShader)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
-    
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
-    
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glm::mat4 modelMatrix = glm::mat4(1.0f);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.006, 0.006, 0.006));
 
-    data = stbi_load("../Asteroids/Textures/ubi-256x256.png", &width, &height, &nrChannels, 0); 
+        /*
+        * Buffer configuration
+        */
+        unsigned int buffer;
+        glGenBuffers(1, &buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), &modelMatrix, GL_STATIC_DRAW);
 
-    if (data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
+        for (unsigned int i = 0; i < model->meshes.size(); i++)
+        {
+            unsigned int VAO = model->meshes[i].VAO;
+            glBindVertexArray(VAO);
+            // set attribute pointers for matrix (4 times vec4)
+            glEnableVertexAttribArray(3);
+            glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+            glEnableVertexAttribArray(4);
+            glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+            glEnableVertexAttribArray(5);
+            glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+            glEnableVertexAttribArray(6);
+            glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    shader.use();
-    shader.setInt("texture1", 0);
-    shader.setInt("texture2", 1);
-}
+            glVertexAttribDivisor(3, 1);
+            glVertexAttribDivisor(4, 1);
+            glVertexAttribDivisor(5, 1);
+            glVertexAttribDivisor(6, 1);
 
-void SpaceShip::render()
-{
-    // activate shader
-    shader.use();
-
-    // bind Texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-
-    // create transformations
-    glm::mat4 transform = glm::mat4(1.0f);
-    transform = glm::translate(transform, glm::vec3(xOffSet, yOffSet, 0.0f));
-    transform = glm::rotate(transform, angle, glm::vec3(0.0f, 0.0f, 1.0f));
-    transform = glm::translate(transform, glm::vec3(-xOffSet, -yOffSet, 0.0f));
-
-    shader.setMat4("transform", transform);
-    
-    // DEBUG
-    //std::cout <<"angle: "<<angle<<" x: "<<xOffSet<<" y: "<<yOffSet<<"(x, y): "<<sqrt(xOffSet*xOffSet + yOffSet*yOffSet)<< std::endl;
-
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-}
-
-void SpaceShip::moveForward()
-{ 
-    xOffSet += cos(angle) * speed;
-    yOffSet += sin(angle) * speed;
-
-    adjustOffSets();
-    
-    shader.setFloat("xOffset", xOffSet);
-    shader.setFloat("yOffset", yOffSet);
-}
-
-void SpaceShip::moveBackward()
-{
-    xOffSet -= cos(angle) * speed;
-    yOffSet -= sin(angle) * speed;
-  
-    adjustOffSets();
-    
-    shader.setFloat("xOffset", xOffSet);
-    shader.setFloat("yOffset", yOffSet);
-}
-
-void SpaceShip::adjustOffSets()
-{
-    if(xOffSet > 1.0f || xOffSet < -1.0f)
-    {
-      xOffSet *= -1.0f;
+            glBindVertexArray(0);
+        }
     }
 
-    if(yOffSet > 1.0f || yOffSet < -1.0f)
+    SpaceShip::~SpaceShip()
     {
-      yOffSet *= -1.0f;
+        delete model;
+        delete modelMatrix;
     }
-}
 
-void SpaceShip::rotateLeft()
-{
-    angle += rotation_speed;
-    glm::mat4 trans = glm::mat4(1.0f);
-    trans = glm::rotate(trans, glm::radians(angle), glm::vec3(0.0, 0.0, 1.0));
+    void SpaceShip::render(float width, float height, Camera camera)
+    {
+        shader.use();
+
+        // configure transformation matrices
+        glm::mat4 projection = glm::perspective(glm::radians(45.f), width / height, 0.1f, 1000.0f);
+        projection = glm::translate(projection, glm::vec3(xOffSet, yOffSet, 0.0f));
+        projection = glm::rotate(projection, angle+glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
+        projection = glm::translate(projection, glm::vec3(-xOffSet, -yOffSet, 0.0f));
+        projection = glm::translate(projection, glm::vec3(xOffSet, yOffSet, 0.0f));
+        glm::mat4 view = glm::lookAt(
+            glm::vec3(0.0f, 6.0f, 0.0f), // Looking from top
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 0.0f, 1.0f)
+        );
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", view);
+
+        // draw asteroid
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, model->textures_loaded[0].id);
+        for (unsigned int i = 0; i < model->meshes.size(); i++)
+        {
+            glBindVertexArray(model->meshes[i].VAO);
+            glDrawElements(GL_TRIANGLES, model->meshes[i].indices.size(), GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
+        }
+    }
+
+    void SpaceShip::moveForward()
+    { 
+        xOffSet += cos(angle) * speed;
+        yOffSet += sin(angle) * speed;
+
+        //adjustOffSets();
+        
+        shader.setFloat("xOffset", xOffSet);
+        shader.setFloat("yOffset", yOffSet);
+    }
+
+    void SpaceShip::moveBackward()
+    {
+        xOffSet -= cos(angle) * speed;
+        yOffSet -= sin(angle) * speed;
     
-    std::cout << angle << std::endl;
-    unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
-    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-}
+        //adjustOffSets();
+        
+        shader.setFloat("xOffset", xOffSet);
+        shader.setFloat("yOffset", yOffSet);
+    }
 
-void SpaceShip::rotateRight()
-{
-    angle -= rotation_speed;
-}
+    void SpaceShip::adjustOffSets()
+    {
+        if(xOffSet > 1.0f || xOffSet < -1.0f)
+        {
+        xOffSet *= -1.0f;
+        }
 
-void SpaceShip::use() const
-{ 
-    shader.use();
-}
+        if(yOffSet > 1.0f || yOffSet < -1.0f)
+        {
+        yOffSet *= -1.0f;
+        }
+    }
 
-SpaceShip::~SpaceShip()
-{
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+    void SpaceShip::rotateLeft()
+    {
+        angle += rotation_speed;
+    }
+
+    void SpaceShip::rotateRight()
+    {
+        angle -= rotation_speed;
+    }
+
+    void SpaceShip::use() const
+    { 
+        shader.use();
+    }
+
+    void loadModel(string modelPath) {
+        model = new Model(modelPath);
+    }
 }

@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/matrix_access.hpp>
 
 #include <vector>
 
@@ -21,7 +22,6 @@ const float PITCH       =  0.0f;
 const float SPEED       =  2.5f;
 const float SENSITIVITY =  0.1f;
 const float ZOOM        =  45.0f;
-
 
 // An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
 class Camera
@@ -111,6 +111,48 @@ public:
             Zoom = 1.0f;
         if (Zoom >= 45.0f)
             Zoom = 45.0f;
+    }
+
+    bool isInsideFrustum(glm::mat4 viewMatrix)
+    {
+        glm::vec4 rowX = glm::row(viewMatrix, 0);
+        glm::vec4 rowY = glm::row(viewMatrix, 1);
+        glm::vec4 rowZ = glm::row(viewMatrix, 2);
+        glm::vec4 rowW = glm::row(viewMatrix, 3);
+
+        glm::vec4 planes[6];
+        planes[0] = normalize(rowW + rowX);
+        planes[1] = normalize(rowW - rowX);
+        planes[2] = normalize(rowW + rowY);
+        planes[3] = normalize(rowW - rowY);
+        planes[4] = normalize(rowW + rowZ);
+        planes[5] = normalize(rowW - rowZ);
+   
+        for(int i = 0; i<6; i++) {
+            // Normalizing the planes.
+
+            glm::vec3 normal(planes[i].x, planes[i].y, planes[i].z);
+            float length = glm::length(normal);
+            planes[i] = -planes[i] / length; // Notice the negation. I don't know why I needed that!!
+        }
+
+        /*
+        *   Verify if object is inside the frustum
+        */
+        for (glm::vec4 plane : planes)
+        {
+            
+            if (
+                -plane.w < plane.x && plane.x < plane.w &&
+                -plane.w < plane.y && plane.y < plane.w &&
+                -plane.w < plane.z && plane.z < plane.w
+            )
+            {
+                return false;
+            }
+        }
+        
+        return true;
     }
 
 private:

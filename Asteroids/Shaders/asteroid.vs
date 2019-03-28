@@ -8,11 +8,8 @@ out vec2 TexCoords;
 uniform mat4 projection;
 uniform mat4 view;
 
-uniform float xOffset;
-uniform float yOffset;
-
 void main()
 {
     TexCoords = aTexCoords;
-    gl_Position = projection * view * aInstanceMatrix * vec4(aPos.x + xOffset, aPos.y + yOffset, aPos.z, 1.0f); 
+    gl_Position = projection * view * aInstanceMatrix * vec4(aPos, 1.0f); 
 }

@@ -5,31 +5,31 @@
 #include "model.hpp"
 #include "camera.hpp"
 
-const float asteroidSpeed = 0.03;
-const int maxAsteroids = 10;
-const float asteroidCoolDown = 0.05;
+const float ASTEROID_SPEED = 0.005;
+const int ASTEROID_MAX = 10;
+const float ASTEROID_COOLDOWN = 2;
 
-//float totalAsteroids = 0;
+namespace Asteroids {
+    class Asteroid {
+        private:
+            Shader shader;
+            float angle = 0;
+            double xOffSet = 0;
+            double zOffSet = 0;
 
-class Asteroid {
-    private:
-        Shader shader;
-        Model objectModel;
+        public:
+            Asteroid(float width, float height, Camera camera);
+            ~Asteroid();
 
-        float angle = 0;
-        float xOffSet = 0, yOffSet = 0;
+            bool render(float width, float height, Camera camera);
+            void dislocateAsteroid();
+            void generateCoordinates();
+    };
 
-        glm::mat4* modelMatrix = new glm::mat4;
+    void loadModel(string modelPath);
+    void renderAsteroids(float width, float height, Camera camera);
+    bool readyToSpawn();
 
-        unsigned int texture;
-
-    public:
-        Asteroid();
-
-        void render(float width, float height, Camera camera);
-        void dislocateAsteroid();
-
-        static void renderAsteroids(vector<Asteroid*> *asteroids, float width, float height, Camera camera);
-};
+}
 
 #endif

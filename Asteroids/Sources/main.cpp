@@ -5,28 +5,17 @@
 #include <sstream> // std::ostringstream
 
 // Local Headers
-#include "asteroid.hpp"
+#include "game.hpp"
+using namespace Asteroids;
 #include "spaceShip.hpp"
 #include "model.hpp"
 #include "shader.hpp"
 #include "main.hpp"
-#include "camera.hpp"
-
-// Camera
-Camera camera(glm::vec3(0.0f, 0.0f, 155.0f));
-float lastX = mWidth / 2.0f;
-float lastY = mHeight / 2.0f;
-bool firstMouse = true;
-
-// Space Ship
-// ------------------------------------
-SpaceShip *spaceShip;
-
-// Asteroid
-// ------------------------------------
-vector<Asteroid*> asteroids;
 
 int main() {
+    // initialize random seed
+    srand(time(NULL));
+
     // Load GLFW and Create a Window
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -51,12 +40,6 @@ int main() {
 
     // Create Context and Load OpenGL Functions
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    //glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-
-    // tell GLFW to capture our mouse
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -67,13 +50,18 @@ int main() {
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LEQUAL);
+    glDepthRange(0.0f, 1.0f);
 
     // Show OpenGL version
     std::cerr << "OpenGL " << glGetString(GL_VERSION) << std::endl;
 
-    // build and compile the Space Ship
-    // ------------------------------------
-    spaceShip = new SpaceShip("../Asteroids/Shaders/space_ship.vs", "../Asteroids/Shaders/space_ship.fs");
+    // Game instance is responsible to store game state, model loading, rendering, etc...
+    Game game(mWidth, mHeight, window);
+    
+    // Loading models
+    game.Init();
 
     // load models
     // -----------
@@ -81,20 +69,19 @@ int main() {
 
     // Rendering Loop
     while (!glfwWindowShouldClose(window)) {
-
+        srand(time(NULL)); // update random seed
         // calls fps counter
         showFPS(window);
 
         // Input Control
-        processInput(window);
+        game.ProcessInput(window);
 
         // { Begin of Render Logic
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearDepth(1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        Asteroid::renderAsteroids(&asteroids, mWidth, mHeight, camera);
-
-        spaceShip->render();
+        game.Render();
 
         // } End of Render Logic
 
@@ -108,76 +95,6 @@ int main() {
     // ------------------------------------------------------------------
     glfwTerminate();
     return EXIT_SUCCESS;
-}
-
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window)
-{
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(window, true);
-    } 
-    if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-    {   
-        std::cout << "UP" << std::endl;
-        spaceShip->moveForward();
-    }
-    if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-    {   
-        std::cout << "DOWN" << std::endl;
-        spaceShip->moveBackward();
-    }
-    if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-    {   
-        std::cout << "LEFT" << std::endl;
-        spaceShip->rotateLeft();
-    }
-    if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-    {   
-        std::cout << "RIGHT" << std::endl;
-        spaceShip->rotateRight();
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-}
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    // make sure the viewport matches the new window dimensions; note that width and 
-    // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
-}
-// glfw: whenever the mouse moves, this callback is called
-// -------------------------------------------------------
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    if (firstMouse)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-    lastX = xpos;
-    lastY = ypos;
-
-    camera.ProcessMouseMovement(xoffset, yoffset);
-}
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
-// ----------------------------------------------------------------------
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-    camera.ProcessMouseScroll(yoffset);
 }
 
 // shows the fps counter 
