@@ -5,7 +5,6 @@
 #include <glm/gtc/matrix_access.hpp>
 #include <GLFW/glfw3.h>
 
-
 #include "asteroid.hpp"
 
 namespace Asteroids {
@@ -28,8 +27,9 @@ namespace Asteroids {
     /*
     * max x,z coordinates based on screen ration
     */
-    float max_X = 4.3;
-    float max_Z = 2.3;
+    float max_X = 4.5;
+    float max_Y = 2.5;
+    float radius = 0.12;
 
     Asteroid::Asteroid(float width, float height, Camera camera) : 
         shader("../Asteroids/Shaders/asteroid.vs", "../Asteroids/Shaders/asteroid.fs"),
@@ -90,11 +90,14 @@ namespace Asteroids {
 
         // configure transformation matrices
         glm::mat4 projection = glm::perspective(glm::radians(45.f), width / height, 0.1f, 1000.0f);
-        projection = glm::translate(projection, glm::vec3(xOffSet, zOffSet, 0.0));
+        projection = glm::translate(projection, glm::vec3(xOffSet, yOffSet, 0.0f));
+        projection = glm::rotate(projection, angle+glm::radians((rotation += rotationSpeed)), glm::vec3(0.0, 0.0, 1.0));
+        projection = glm::translate(projection, glm::vec3(-xOffSet, -yOffSet, 0.0f));
+        projection = glm::translate(projection, glm::vec3(xOffSet, yOffSet, 0.0f));
         glm::mat4 view = glm::lookAt(
             glm::vec3(0.0f, 6.0f, 0.0f), // Looking from top
             glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(1.0f, 0.0f, 1.0f)
+            glm::vec3(0.0f, 0.0f, 1.0f)
         );
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
@@ -103,7 +106,7 @@ namespace Asteroids {
             return false;
         }
 
-        std::cout << "is inside: " << camera.isInsideFrustum(projection * view) << std::endl;
+        //std::cout << "is inside: " << camera.isInsideFrustum(projection * view) << std::endl;
 
         // draw asteroid
         glActiveTexture(GL_TEXTURE0);
@@ -121,22 +124,22 @@ namespace Asteroids {
     void Asteroid::dislocateAsteroid()
     {
         float radians = glm::radians(angle);
-        std::cout << cos(radians) * ASTEROID_SPEED << " " << sin(radians) * ASTEROID_SPEED << std::endl;
+
         if (angle >= 0 && angle <= 90.f) {
             xOffSet -= cos(radians) * ASTEROID_SPEED;
-            zOffSet += sin(radians) * ASTEROID_SPEED;
+            yOffSet -= sin(radians) * ASTEROID_SPEED;
         }
         else if (angle > 90.f && angle <= 180.f) {
             xOffSet += cos(radians) * -ASTEROID_SPEED;
-            zOffSet += sin(radians) * ASTEROID_SPEED;
+            yOffSet -= sin(radians) * ASTEROID_SPEED;
         }
         else if (angle > 180.f && angle <= 270.f) {
             xOffSet += cos(radians) * -ASTEROID_SPEED;
-            zOffSet += sin(radians) * -ASTEROID_SPEED;
+            yOffSet += sin(radians) * -ASTEROID_SPEED;
         }
         else {
             xOffSet -= cos(radians) * ASTEROID_SPEED;
-            zOffSet -= sin(radians) * ASTEROID_SPEED;
+            yOffSet += sin(radians) * ASTEROID_SPEED;
         }
     }
 
@@ -146,7 +149,6 @@ namespace Asteroids {
 
     void renderAsteroids(float width, float height, Camera camera)
     {
-        std::cout << glfwGetTime() << std::endl;
         if(Asteroids::asteroids.size() < ASTEROID_MAX && readyToSpawn())
         {
             lastAsteroidTimestamp = glfwGetTime();
@@ -156,10 +158,11 @@ namespace Asteroids {
         for(unsigned int i = 0; i < Asteroids::asteroids.size(); i++)
         {
             Asteroid *asteroid = Asteroids::asteroids.at(i);
-
+            //std::cout << asteroid->xOffSet << "  " << asteroid->yOffSet << std::endl;
             if(!asteroid->render(width, height, camera)) {
                 asteroids.erase(asteroids.begin()+i);
             }
+            CheckAsteroidCollisions();
         }
     }
 
@@ -171,45 +174,127 @@ namespace Asteroids {
     void Asteroid::generateCoordinates()
     {
         double random = ((double) rand() / RAND_MAX);
-        
+        std::cout << angle << std::endl;
         if (angle >= 0 && angle <= 90.f) {
             if (angle > 45.f) {
-                zOffSet = -max_Z;
+                yOffSet = max_Y;
                 xOffSet = random * max_X;
             }
             else {
-                zOffSet = random * -max_Z;
+                yOffSet = random * max_Y;
                 xOffSet = max_X;
             }
         }
         else if (angle > 90.f && angle <= 180.f) {
             if (angle > 135.f) {
-                zOffSet = random * -max_Z;
+                yOffSet = random * max_Y;
                 xOffSet = -max_X;
             }
             else {
-                zOffSet = -max_Z;
+                yOffSet = max_Y;
                 xOffSet = random * -max_X;
             }
         }
         else if (angle > 180.f && angle <= 270.f) {
             if (angle > 225.f) {
-                zOffSet = max_Z;
+                yOffSet = -max_Y;
                 xOffSet = random * -max_X;
             }
             else {
-                zOffSet = random * max_Z;
+                yOffSet = random * -max_Y;
                 xOffSet = -max_X;
             }
         }
         else {
             if (angle > 315.f) {
-                zOffSet = random * max_Z;
+                yOffSet = random * -max_Y;
                 xOffSet = max_X;
             }
             else {
-                zOffSet = max_Z;
+                yOffSet = -max_Y;
                 xOffSet = random * max_X;
+            }
+        }
+    }
+
+    void CheckAsteroidCollisions()
+    {   
+        /*
+        *       y
+        *   | 1 | 0 |
+        *   ----+-----> x
+        *   | 2 | 3 |
+        */
+        glm::vec2 quadrants[4] = {
+            glm::vec2(radius, radius),
+            glm::vec2(-radius, radius),
+            glm::vec2(-radius, -radius),
+            glm::vec2(radius, -radius)
+        };
+
+        vector<Asteroid*> collisions;
+
+        for (int i = 0; i<asteroids.size(); i++) {
+            for (int j = 0; j<asteroids.size(); j++) {
+                if (i == j) continue;
+                
+                if (asteroids[i]->xOffSet > asteroids[j]->xOffSet) {
+                    if (asteroids[i]->yOffSet > asteroids[j]->yOffSet) {
+                        float iX = asteroids[i]->xOffSet + quadrants[2].x;
+                        float iY = asteroids[i]->yOffSet + quadrants[2].y;
+                        float jX = asteroids[j]->xOffSet + quadrants[0].x;
+                        float jY = asteroids[j]->yOffSet + quadrants[0].y;
+
+                        if(jX > iX && jY > iY) {
+                            collisions.push_back(asteroids[i]);
+                            collisions.push_back(asteroids[j]);
+                        }
+                    }
+                    else {
+                        float iX = asteroids[i]->xOffSet + quadrants[1].x;
+                        float iY = asteroids[i]->yOffSet + quadrants[1].y;
+                        float jX = asteroids[j]->xOffSet + quadrants[3].x;
+                        float jY = asteroids[j]->yOffSet + quadrants[3].y;
+
+                        if(jX > iX && jY < iY) {
+                            std::cout << iX << " - " << iY << " | " << jX << " - " << jY << " -> " << "3" << std::endl;
+                            collisions.push_back(asteroids[i]);
+                            collisions.push_back(asteroids[j]);
+                        }
+                    }
+                }
+                else {
+                    if (asteroids[i]->yOffSet > asteroids[j]->yOffSet) {
+                        float iX = asteroids[i]->xOffSet + quadrants[3].x;
+                        float iY = asteroids[i]->yOffSet + quadrants[3].y;
+                        float jX = asteroids[j]->xOffSet + quadrants[1].x;
+                        float jY = asteroids[j]->yOffSet + quadrants[1].y;
+
+                        if(jX < iX && jY > iY) {
+                            collisions.push_back(asteroids[i]);
+                            collisions.push_back(asteroids[j]);
+                        }  
+                    }
+                    else {
+                        float iX = asteroids[i]->xOffSet + quadrants[0].x;
+                        float iY = asteroids[i]->yOffSet + quadrants[0].y;
+                        float jX = asteroids[j]->xOffSet + quadrants[2].x;
+                        float jY = asteroids[j]->yOffSet + quadrants[2].y;
+
+                        if(jX < iX && jY < iY) {
+                            collisions.push_back(asteroids[i]);
+                            collisions.push_back(asteroids[j]);
+                        }
+                    }
+                }
+                
+                for (Asteroid *collision : collisions) {
+                    for (int i=0; i<asteroids.size(); i++) {
+                        if (asteroids[i] == collision) {
+                            asteroids.erase(asteroids.begin()+i);
+                        }
+                    }
+                }
             }
         }
     }

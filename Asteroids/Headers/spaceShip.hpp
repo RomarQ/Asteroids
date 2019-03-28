@@ -15,7 +15,7 @@ namespace SpaceShips {
 
             float yOffSet, xOffSet = yOffSet = 0.0f;
             float angle = glm::radians(90.0);
-            float speed = 0.015f;
+            float speed = 0.025f;
             float rotation_speed = 0.07; // radians
 
             glm::mat4* modelMatrix = new glm::mat4;

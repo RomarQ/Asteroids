@@ -2,6 +2,12 @@
 
 namespace Asteroids {
 
+    btDefaultCollisionConfiguration* collisionConfiguration;
+    btCollisionDispatcher* dispatcher;
+    btBroadphaseInterface* overlappingPairCache;
+    btSequentialImpulseConstraintSolver* solver;
+    btDiscreteDynamicsWorld* dynamicWorld;
+
     float Width, Height;
 
     Camera camera;
@@ -17,6 +23,14 @@ namespace Asteroids {
     Game::Game(float width, float height, GLFWwindow* window) : 
         State(GAME_ACTIVE)
     {
+        collisionConfiguration = new btDefaultCollisionConfiguration();
+        dispatcher = new btCollisionDispatcher(collisionConfiguration);
+        overlappingPairCache = new btDbvtBroadphase();
+        solver = new btSequentialImpulseConstraintSolver;
+        dynamicWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+
+        dynamicWorld->setGravity(btVector3(0.0, -10.0, 0.0));
+        
         Width = width;
         Height = height;
         camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -47,6 +61,12 @@ namespace Asteroids {
     void Game::Update(float dt)
     {
 
+    }
+
+    void Game::Render()
+    {
+        spaceShip->render(Width, Height, camera);
+        Asteroids::renderAsteroids(Width, Height, camera);
     }
 
     void Game::ProcessInput(GLFWwindow *window)
@@ -129,11 +149,5 @@ namespace Asteroids {
         glViewport(0, 0, width, height);
         Width = width;
         Height = height;
-    }
-
-    void Game::Render()
-    {
-        spaceShip->render(Width, Height, camera);
-        Asteroids::renderAsteroids(Width, Height, camera);
     }
 }

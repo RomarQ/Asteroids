@@ -1,6 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include <btBulletDynamicsCommon.h>
 #include <GLFW/glfw3.h>
 #include "camera.hpp"
 
