@@ -5,9 +5,10 @@
 #include <GLFW/glfw3.h>
 #include "camera.hpp"
 
+#include "projectile.hpp"
 #include "asteroid.hpp"
-
 #include "spaceShip.hpp"
+
 using namespace SpaceShips;
 
 // Represents the current state of the game

@@ -13,14 +13,15 @@ namespace SpaceShips {
         private:
             Shader shader;
 
-            float yOffSet, xOffSet = yOffSet = 0.0f;
-            float angle = glm::radians(90.0);
             float speed = 0.025f;
             float rotation_speed = 0.07; // radians
 
             glm::mat4* modelMatrix = new glm::mat4;
 
         public:
+            float yOffSet, xOffSet = yOffSet = 0.0f;
+            float angle = glm::radians(90.0);
+
             SpaceShip(const char* vertexShaser, const char* fragmentShader);
             ~SpaceShip();
 

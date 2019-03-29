@@ -50,9 +50,10 @@ namespace Asteroids {
 
     void Game::Init()
     {
-        Asteroids::loadModel("../Asteroids/Objects/asteroid/rock.obj");
+        Asteroids::loadModel("../Asteroids/Objects/asteroid/asteroid.obj");
         SpaceShips::loadModel("../Asteroids/Objects/spaceship/spaceship.obj");
-        
+        Projectiles::loadModel("../Asteroids/Objects/projectile/projectile.obj");
+
         // build and compile the Space Ship
         // ------------------------------------
         spaceShip = new SpaceShip("../Asteroids/Shaders/space_ship.vs", "../Asteroids/Shaders/space_ship.fs");
@@ -67,6 +68,7 @@ namespace Asteroids {
     {
         spaceShip->render(Width, Height, camera);
         Asteroids::renderAsteroids(Width, Height, camera);
+        Projectiles::renderProjectiles(Width, Height);
     }
 
     void Game::ProcessInput(GLFWwindow *window)
@@ -94,6 +96,11 @@ namespace Asteroids {
         {   
             std::cout << "RIGHT" << std::endl;
             spaceShip->rotateRight();
+        }
+        if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        {   
+            std::cout << "SPACE" << std::endl;
+            Projectiles::fireProjectile(Width, Height, spaceShip->xOffSet, spaceShip->yOffSet, spaceShip->angle);
         }
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)

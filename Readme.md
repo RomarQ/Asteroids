@@ -10,7 +10,7 @@
 * [X] Random Spawn of Asteroids Spawn
 * [X] Asteroid vs Asteroid Collision and Asteroid Dispawn
 * [X] FPS display
-* [ ] Space Ship Projectiles
+* [X] Space Ship Projectiles
 * [ ] Space Ship vs Asteroid Collision
 * [ ] Projectile vs Asteroid Collision
 * [ ] Scoring System
