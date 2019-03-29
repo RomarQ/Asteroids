@@ -15,7 +15,8 @@
 * [X] Projectile vs Asteroid Collision
 * [ ] Scoring System
 * [ ] Game Start/End Menu
-
+* [ ] CLEAN THIS SPAGHETTI CODE!!!
+  
 ## Summary
 School Project [ Will fill this later ]
 
