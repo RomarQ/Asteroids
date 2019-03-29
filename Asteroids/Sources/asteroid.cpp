@@ -155,9 +155,9 @@ namespace Asteroids {
             Asteroids::asteroids.push_back(new Asteroid(width, height, camera));
         }
 
-        for(unsigned int i = 0; i < Asteroids::asteroids.size(); i++)
+        for(unsigned int i = 0; i < asteroids.size(); i++)
         {
-            Asteroid *asteroid = Asteroids::asteroids.at(i);
+            Asteroid *asteroid = asteroids.at(i);
             //std::cout << asteroid->xOffSet << "  " << asteroid->yOffSet << std::endl;
             if(!asteroid->render(width, height, camera)) {
                 asteroids.erase(asteroids.begin()+i);
@@ -297,5 +297,10 @@ namespace Asteroids {
                 }
             }
         }
+    }
+
+    vector<Asteroid*> * getAsteroids()
+    {
+        return &asteroids;
     }
 }

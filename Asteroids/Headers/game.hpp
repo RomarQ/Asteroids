@@ -9,6 +9,7 @@
 #include "asteroid.hpp"
 #include "spaceShip.hpp"
 
+using namespace Projectiles;
 using namespace SpaceShips;
 
 // Represents the current state of the game
@@ -42,6 +43,8 @@ namespace Asteroids {
             void ProcessInput(GLFWwindow *window);
             void Update(float dt);
             void Render();
+
+            void checkProjectileCollisions();
     };
 }
 

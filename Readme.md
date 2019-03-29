@@ -12,9 +12,10 @@
 * [X] FPS display
 * [X] Space Ship Projectiles
 * [ ] Space Ship vs Asteroid Collision
-* [ ] Projectile vs Asteroid Collision
+* [X] Projectile vs Asteroid Collision
 * [ ] Scoring System
-* [ ] Game Start/End Menu 
+* [ ] Game Start/End Menu
+
 ## Summary
 School Project [ Will fill this later ]
 

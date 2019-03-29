@@ -26,6 +26,9 @@ namespace Projectiles {
     };
 
     void loadModel(string modelPath);
+
+    vector<Projectile*> * getProjectiles();
+
     void renderProjectiles(float width, float height);
     bool readyToFire();
     bool fireProjectile(float width, float height, float x, float y, float angle);

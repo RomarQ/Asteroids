@@ -20,6 +20,11 @@ namespace Asteroids {
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
 
+    /*
+    *   Object radius
+    */
+    float asteroidRadius = 0.14;
+
     Game::Game(float width, float height, GLFWwindow* window) : 
         State(GAME_ACTIVE)
     {
@@ -66,6 +71,8 @@ namespace Asteroids {
 
     void Game::Render()
     {
+        Game::checkProjectileCollisions();
+
         spaceShip->render(Width, Height, camera);
         Asteroids::renderAsteroids(Width, Height, camera);
         Projectiles::renderProjectiles(Width, Height);
@@ -79,27 +86,22 @@ namespace Asteroids {
         } 
         if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
         {   
-            std::cout << "UP" << std::endl;
             spaceShip->moveForward();
         }
         if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
         {   
-            std::cout << "DOWN" << std::endl;
             spaceShip->moveBackward();
         }
         if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         {   
-            std::cout << "LEFT" << std::endl;
             spaceShip->rotateLeft();
         }
         if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         {   
-            std::cout << "RIGHT" << std::endl;
             spaceShip->rotateRight();
         }
         if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {   
-            std::cout << "SPACE" << std::endl;
             Projectiles::fireProjectile(Width, Height, spaceShip->xOffSet, spaceShip->yOffSet, spaceShip->angle);
         }
 
@@ -118,6 +120,101 @@ namespace Asteroids {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
             glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+    }
+
+    void Game::checkProjectileCollisions()
+    {
+        /*
+        *       y
+        *   | 1 | 0 |
+        *   ----+-----> x
+        *   | 2 | 3 |
+        */
+        glm::vec2 quadrants[4] = {
+            glm::vec2(asteroidRadius, asteroidRadius),
+            glm::vec2(-asteroidRadius, asteroidRadius),
+            glm::vec2(-asteroidRadius, -asteroidRadius),
+            glm::vec2(asteroidRadius, -asteroidRadius)
+        };
+
+        vector<Projectile*> *projectiles = Projectiles::getProjectiles();
+        vector<Asteroid*> *asteroids = Asteroids::getAsteroids();
+
+        vector<Asteroid*> aCollisions;
+        vector<Projectile*> pCollisions;
+
+        for (int i = 0; i<projectiles->size(); i++) {
+            for (int j = 0; j<asteroids->size(); j++) {
+                //std::cout << projectiles->at(i)->xOffSet << " " << asteroids->at(j)->xOffSet << " " << projectiles->at(i)->yOffSet << " " << asteroids->at(j)->yOffSet << std::endl;
+
+                if (projectiles->at(i)->xOffSet > asteroids->at(j)->xOffSet) {
+                    if (projectiles->at(i)->yOffSet > asteroids->at(j)->yOffSet) {
+                        float iX = projectiles->at(i)->xOffSet + quadrants[2].x;
+                        float iY = projectiles->at(i)->yOffSet + quadrants[2].y;
+                        float jX = asteroids->at(j)->xOffSet + quadrants[0].x;
+                        float jY = asteroids->at(j)->yOffSet + quadrants[0].y;
+
+                        if(jX > iX && jY > iY) {
+                            pCollisions.push_back(projectiles->at(i));
+                            aCollisions.push_back(asteroids->at(j));
+                        }
+                    }
+                    else {
+                        float iX = projectiles->at(i)->xOffSet + quadrants[1].x;
+                        float iY = projectiles->at(i)->yOffSet + quadrants[1].y;
+                        float jX = asteroids->at(j)->xOffSet + quadrants[3].x;
+                        float jY = asteroids->at(j)->yOffSet + quadrants[3].y;
+
+                        if(jX > iX && jY < iY) {
+                            pCollisions.push_back(projectiles->at(i));
+                            aCollisions.push_back(asteroids->at(j));
+                        }
+                    }
+                }
+                else {
+                    if (projectiles->at(i)->yOffSet > asteroids->at(j)->yOffSet) {
+                        float iX = projectiles->at(i)->xOffSet + quadrants[3].x;
+                        float iY = projectiles->at(i)->yOffSet + quadrants[3].y;
+                        float jX = asteroids->at(j)->xOffSet + quadrants[1].x;
+                        float jY = asteroids->at(j)->yOffSet + quadrants[1].y;
+
+                        if(jX < iX && jY > iY) {
+                            pCollisions.push_back(projectiles->at(i));
+                            aCollisions.push_back(asteroids->at(j));
+                        }  
+                    }
+                    else {
+                        float iX = projectiles->at(i)->xOffSet + quadrants[0].x;
+                        float iY = projectiles->at(i)->yOffSet + quadrants[0].y;
+                        float jX = asteroids->at(j)->xOffSet + quadrants[2].x;
+                        float jY = asteroids->at(j)->yOffSet + quadrants[2].y;
+
+                        if(jX < iX && jY < iY) {
+                            pCollisions.push_back(projectiles->at(i));
+                            aCollisions.push_back(asteroids->at(j));
+                        }
+                    }
+                }
+            }
+        }
+
+        for (Projectile *collision : pCollisions) {
+            for (int i=0; i<projectiles->size(); i++) {
+                if (projectiles->at(i) == collision) {
+                    projectiles->erase(projectiles->begin()+i);
+                    break;
+                }
+            }
+        }
+
+        for (Asteroid *collision : aCollisions) {
+            for (int i=0; i<asteroids->size(); i++) {
+                if (asteroids->at(i) == collision) {
+                    asteroids->erase(asteroids->begin()+i);
+                    break;
+                }
+            }
+        }
     }
 
     // glfw: whenever the mouse moves, this callback is called

@@ -93,9 +93,7 @@ namespace Projectiles {
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
 
-        //std::cout << "is inside: " << camera.isInsideFrustum(projection * view) << std::endl;
-
-        // draw asteroid
+        // draw projectile
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, model->textures_loaded[0].id);
         for (unsigned int i = 0; i < model->meshes.size(); i++)
@@ -112,8 +110,6 @@ namespace Projectiles {
     {
         xOffSet += cos(angle) * PROJECTILE_SPEED;
         yOffSet += sin(angle) * PROJECTILE_SPEED;
-
-        //adjustOffSets();
         
         shader.setFloat("xOffset", xOffSet);
         shader.setFloat("yOffset", yOffSet);
@@ -135,18 +131,19 @@ namespace Projectiles {
 
     void renderProjectiles(float width, float height)
     {
-        for(unsigned int i = 0; i < projectiles.size(); i++)
+        for(Projectile * projectile : projectiles)
         {
-            Projectile *projectile = projectiles.at(i);
-            //std::cout << asteroid->xOffSet << "  " << asteroid->yOffSet << std::endl;
-            if(!projectile->render(width, height)) {
-                projectiles.erase(projectiles.begin()+i);
-            }
+            projectile->render(width, height);
         }
     }
 
     bool readyToFire()
     {
         return (glfwGetTime() > lastProjectileTimestamp+PROJECTILE_COOLDOWN);
+    }
+
+    vector<Projectile*> * getProjectiles()
+    {
+        return &projectiles;
     }
 }
