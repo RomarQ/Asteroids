@@ -1,9 +1,20 @@
+
 # Asteroid
 
-## Progress
+## Progress Sample
 
 ![Screenshot](progress.gif)
 
+## TODO
+* [X] Space Ship Movement/Rotation with User Input
+* [X] Random Spawn of Asteroids Spawn
+* [X] Asteroid vs Asteroid Collision and Asteroid Dispawn
+* [X] FPS display
+* [ ] Space Ship Projectiles
+* [ ] Space Ship vs Asteroid Collision
+* [ ] Projectile vs Asteroid Collision
+* [ ] Scoring System
+* [ ] Game Start/End Menu 
 ## Summary
 School Project [ Will fill this later ]
 
