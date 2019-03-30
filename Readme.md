@@ -11,7 +11,7 @@
 * [X] Asteroid vs Asteroid Collision and Asteroid Dispawn
 * [X] FPS display
 * [X] Space Ship Projectiles
-* [ ] Space Ship vs Asteroid Collision
+* [X] Space Ship vs Asteroid Collision
 * [X] Projectile vs Asteroid Collision
 * [ ] Scoring System
 * [ ] Game Start/End Menu

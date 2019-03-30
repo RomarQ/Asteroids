@@ -45,6 +45,8 @@ namespace Asteroids {
             void Render();
 
             void checkProjectileCollisions();
+            void checkAsteroidCollisions();
+            bool checkShipCollisions();
     };
 }
 

@@ -35,7 +35,6 @@ namespace Asteroids {
 
     void renderAsteroids(float width, float height, Camera camera);
     bool readyToSpawn();
-    void CheckAsteroidCollisions();
 
 }
 

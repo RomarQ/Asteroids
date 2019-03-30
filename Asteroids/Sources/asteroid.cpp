@@ -162,7 +162,6 @@ namespace Asteroids {
             if(!asteroid->render(width, height, camera)) {
                 asteroids.erase(asteroids.begin()+i);
             }
-            CheckAsteroidCollisions();
         }
     }
 
@@ -213,88 +212,6 @@ namespace Asteroids {
             else {
                 yOffSet = -max_Y;
                 xOffSet = random * max_X;
-            }
-        }
-    }
-
-    void CheckAsteroidCollisions()
-    {   
-        /*
-        *       y
-        *   | 1 | 0 |
-        *   ----+-----> x
-        *   | 2 | 3 |
-        */
-        glm::vec2 quadrants[4] = {
-            glm::vec2(radius, radius),
-            glm::vec2(-radius, radius),
-            glm::vec2(-radius, -radius),
-            glm::vec2(radius, -radius)
-        };
-
-        vector<Asteroid*> collisions;
-
-        for (int i = 0; i<asteroids.size(); i++) {
-            for (int j = 0; j<asteroids.size(); j++) {
-                if (i == j) continue;
-                
-                if (asteroids[i]->xOffSet > asteroids[j]->xOffSet) {
-                    if (asteroids[i]->yOffSet > asteroids[j]->yOffSet) {
-                        float iX = asteroids[i]->xOffSet + quadrants[2].x;
-                        float iY = asteroids[i]->yOffSet + quadrants[2].y;
-                        float jX = asteroids[j]->xOffSet + quadrants[0].x;
-                        float jY = asteroids[j]->yOffSet + quadrants[0].y;
-
-                        if(jX > iX && jY > iY) {
-                            collisions.push_back(asteroids[i]);
-                            collisions.push_back(asteroids[j]);
-                        }
-                    }
-                    else {
-                        float iX = asteroids[i]->xOffSet + quadrants[1].x;
-                        float iY = asteroids[i]->yOffSet + quadrants[1].y;
-                        float jX = asteroids[j]->xOffSet + quadrants[3].x;
-                        float jY = asteroids[j]->yOffSet + quadrants[3].y;
-
-                        if(jX > iX && jY < iY) {
-                            std::cout << iX << " - " << iY << " | " << jX << " - " << jY << " -> " << "3" << std::endl;
-                            collisions.push_back(asteroids[i]);
-                            collisions.push_back(asteroids[j]);
-                        }
-                    }
-                }
-                else {
-                    if (asteroids[i]->yOffSet > asteroids[j]->yOffSet) {
-                        float iX = asteroids[i]->xOffSet + quadrants[3].x;
-                        float iY = asteroids[i]->yOffSet + quadrants[3].y;
-                        float jX = asteroids[j]->xOffSet + quadrants[1].x;
-                        float jY = asteroids[j]->yOffSet + quadrants[1].y;
-
-                        if(jX < iX && jY > iY) {
-                            collisions.push_back(asteroids[i]);
-                            collisions.push_back(asteroids[j]);
-                        }  
-                    }
-                    else {
-                        float iX = asteroids[i]->xOffSet + quadrants[0].x;
-                        float iY = asteroids[i]->yOffSet + quadrants[0].y;
-                        float jX = asteroids[j]->xOffSet + quadrants[2].x;
-                        float jY = asteroids[j]->yOffSet + quadrants[2].y;
-
-                        if(jX < iX && jY < iY) {
-                            collisions.push_back(asteroids[i]);
-                            collisions.push_back(asteroids[j]);
-                        }
-                    }
-                }
-                
-                for (Asteroid *collision : collisions) {
-                    for (int i=0; i<asteroids.size(); i++) {
-                        if (asteroids[i] == collision) {
-                            asteroids.erase(asteroids.begin()+i);
-                        }
-                    }
-                }
             }
         }
     }

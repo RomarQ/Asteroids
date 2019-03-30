@@ -24,6 +24,35 @@ namespace Asteroids {
     *   Object radius
     */
     float asteroidRadius = 0.14;
+    float projectileRadius = 0.09;
+    float shipRadius = 0.15;
+
+    /*
+    *   Collision Points of the obejct
+    * 
+    *       y
+    *   | 1 | 0 |
+    *   ----+-----> x
+    *   | 2 | 3 |
+    */
+    glm::vec2 asteroidQuadrants[4] = {
+        glm::vec2(asteroidRadius, asteroidRadius),
+        glm::vec2(-asteroidRadius, asteroidRadius),
+        glm::vec2(-asteroidRadius, -asteroidRadius),
+        glm::vec2(asteroidRadius, -asteroidRadius)
+    };
+    glm::vec2 projectileQuadrants[4] = {
+        glm::vec2(projectileRadius, projectileRadius),
+        glm::vec2(-projectileRadius, projectileRadius),
+        glm::vec2(-projectileRadius, -projectileRadius),
+        glm::vec2(projectileRadius, -projectileRadius)
+    };
+    glm::vec2 shipQuadrants[4] = {
+        glm::vec2(shipRadius, shipRadius),
+        glm::vec2(-shipRadius, shipRadius),
+        glm::vec2(-shipRadius, -shipRadius),
+        glm::vec2(shipRadius, -shipRadius)
+    };
 
     Game::Game(float width, float height, GLFWwindow* window) : 
         State(GAME_ACTIVE)
@@ -72,6 +101,11 @@ namespace Asteroids {
     void Game::Render()
     {
         Game::checkProjectileCollisions();
+        Game::checkAsteroidCollisions();
+
+        if(Game::checkShipCollisions()) {
+            std::cout << "ACIDENTE" << std::endl;
+        }
 
         spaceShip->render(Width, Height, camera);
         Asteroids::renderAsteroids(Width, Height, camera);
@@ -122,21 +156,55 @@ namespace Asteroids {
             glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
     }
 
+    bool Game::checkShipCollisions()
+    {
+        vector<Asteroid*> *asteroids = Asteroids::getAsteroids();
+
+        for (int i = 0; i<asteroids->size(); i++) {
+
+            if (spaceShip->xOffSet > asteroids->at(i)->xOffSet) {
+                if (spaceShip->yOffSet > asteroids->at(i)->yOffSet) {
+                    float sX = spaceShip->xOffSet + shipQuadrants[2].x;
+                    float sY = spaceShip->yOffSet + shipQuadrants[2].y;
+                    float aX = asteroids->at(i)->xOffSet + asteroidQuadrants[0].x;
+                    float aY = asteroids->at(i)->yOffSet + asteroidQuadrants[0].y;
+
+                    if(aX > sX && aY > sY) return true;
+                }
+                else {
+                    float sX = spaceShip->xOffSet + shipQuadrants[1].x;
+                    float sY = spaceShip->yOffSet + shipQuadrants[1].y;
+                    float aX = asteroids->at(i)->xOffSet + asteroidQuadrants[3].x;
+                    float aY = asteroids->at(i)->yOffSet + asteroidQuadrants[3].y;
+
+                    if(aX > sX && aY < sY) return true;
+                }
+            }
+            else {
+                if (spaceShip->yOffSet > asteroids->at(i)->yOffSet) {
+                    float sX = spaceShip->xOffSet + shipQuadrants[3].x;
+                    float sY = spaceShip->yOffSet + shipQuadrants[3].y;
+                    float aX = asteroids->at(i)->xOffSet + asteroidQuadrants[1].x;
+                    float aY = asteroids->at(i)->yOffSet + asteroidQuadrants[1].y;
+
+                    if(aX < sX && aY > sY) return true;
+                }
+                else {
+                    float sX = spaceShip->xOffSet + shipQuadrants[0].x;
+                    float sY = spaceShip->yOffSet + shipQuadrants[0].y;
+                    float aX = asteroids->at(i)->xOffSet + asteroidQuadrants[2].x;
+                    float aY = asteroids->at(i)->yOffSet + asteroidQuadrants[2].y;
+
+                    if(aX < sX && aY < sY) return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     void Game::checkProjectileCollisions()
     {
-        /*
-        *       y
-        *   | 1 | 0 |
-        *   ----+-----> x
-        *   | 2 | 3 |
-        */
-        glm::vec2 quadrants[4] = {
-            glm::vec2(asteroidRadius, asteroidRadius),
-            glm::vec2(-asteroidRadius, asteroidRadius),
-            glm::vec2(-asteroidRadius, -asteroidRadius),
-            glm::vec2(asteroidRadius, -asteroidRadius)
-        };
-
         vector<Projectile*> *projectiles = Projectiles::getProjectiles();
         vector<Asteroid*> *asteroids = Asteroids::getAsteroids();
 
@@ -149,10 +217,10 @@ namespace Asteroids {
 
                 if (projectiles->at(i)->xOffSet > asteroids->at(j)->xOffSet) {
                     if (projectiles->at(i)->yOffSet > asteroids->at(j)->yOffSet) {
-                        float iX = projectiles->at(i)->xOffSet + quadrants[2].x;
-                        float iY = projectiles->at(i)->yOffSet + quadrants[2].y;
-                        float jX = asteroids->at(j)->xOffSet + quadrants[0].x;
-                        float jY = asteroids->at(j)->yOffSet + quadrants[0].y;
+                        float iX = projectiles->at(i)->xOffSet + projectileQuadrants[2].x;
+                        float iY = projectiles->at(i)->yOffSet + projectileQuadrants[2].y;
+                        float jX = asteroids->at(j)->xOffSet + asteroidQuadrants[0].x;
+                        float jY = asteroids->at(j)->yOffSet + asteroidQuadrants[0].y;
 
                         if(jX > iX && jY > iY) {
                             pCollisions.push_back(projectiles->at(i));
@@ -160,10 +228,10 @@ namespace Asteroids {
                         }
                     }
                     else {
-                        float iX = projectiles->at(i)->xOffSet + quadrants[1].x;
-                        float iY = projectiles->at(i)->yOffSet + quadrants[1].y;
-                        float jX = asteroids->at(j)->xOffSet + quadrants[3].x;
-                        float jY = asteroids->at(j)->yOffSet + quadrants[3].y;
+                        float iX = projectiles->at(i)->xOffSet + projectileQuadrants[1].x;
+                        float iY = projectiles->at(i)->yOffSet + projectileQuadrants[1].y;
+                        float jX = asteroids->at(j)->xOffSet + asteroidQuadrants[3].x;
+                        float jY = asteroids->at(j)->yOffSet + asteroidQuadrants[3].y;
 
                         if(jX > iX && jY < iY) {
                             pCollisions.push_back(projectiles->at(i));
@@ -173,10 +241,10 @@ namespace Asteroids {
                 }
                 else {
                     if (projectiles->at(i)->yOffSet > asteroids->at(j)->yOffSet) {
-                        float iX = projectiles->at(i)->xOffSet + quadrants[3].x;
-                        float iY = projectiles->at(i)->yOffSet + quadrants[3].y;
-                        float jX = asteroids->at(j)->xOffSet + quadrants[1].x;
-                        float jY = asteroids->at(j)->yOffSet + quadrants[1].y;
+                        float iX = projectiles->at(i)->xOffSet + projectileQuadrants[3].x;
+                        float iY = projectiles->at(i)->yOffSet + projectileQuadrants[3].y;
+                        float jX = asteroids->at(j)->xOffSet + asteroidQuadrants[1].x;
+                        float jY = asteroids->at(j)->yOffSet + asteroidQuadrants[1].y;
 
                         if(jX < iX && jY > iY) {
                             pCollisions.push_back(projectiles->at(i));
@@ -184,10 +252,10 @@ namespace Asteroids {
                         }  
                     }
                     else {
-                        float iX = projectiles->at(i)->xOffSet + quadrants[0].x;
-                        float iY = projectiles->at(i)->yOffSet + quadrants[0].y;
-                        float jX = asteroids->at(j)->xOffSet + quadrants[2].x;
-                        float jY = asteroids->at(j)->yOffSet + quadrants[2].y;
+                        float iX = projectiles->at(i)->xOffSet + projectileQuadrants[0].x;
+                        float iY = projectiles->at(i)->yOffSet + projectileQuadrants[0].y;
+                        float jX = asteroids->at(j)->xOffSet + asteroidQuadrants[2].x;
+                        float jY = asteroids->at(j)->yOffSet + asteroidQuadrants[2].y;
 
                         if(jX < iX && jY < iY) {
                             pCollisions.push_back(projectiles->at(i));
@@ -212,6 +280,77 @@ namespace Asteroids {
                 if (asteroids->at(i) == collision) {
                     asteroids->erase(asteroids->begin()+i);
                     break;
+                }
+            }
+        }
+    }
+
+    void Game::checkAsteroidCollisions()
+    {   
+        vector<Asteroid*> *asteroids = Asteroids::getAsteroids();
+
+        vector<Asteroid*> collisions;
+
+        for (int i = 0; i<asteroids->size(); i++) {
+            for (int j = 0; j<asteroids->size(); j++) {
+                if (i == j) continue;
+                
+                if (asteroids->at(i)->xOffSet > asteroids->at(j)->xOffSet) {
+                    if (asteroids->at(i)->yOffSet > asteroids->at(j)->yOffSet) {
+                        float iX = asteroids->at(i)->xOffSet + asteroidQuadrants[2].x;
+                        float iY = asteroids->at(i)->yOffSet + asteroidQuadrants[2].y;
+                        float jX = asteroids->at(j)->xOffSet + asteroidQuadrants[0].x;
+                        float jY = asteroids->at(j)->yOffSet + asteroidQuadrants[0].y;
+
+                        if(jX > iX && jY > iY) {
+                            collisions.push_back(asteroids->at(i));
+                            collisions.push_back(asteroids->at(j));
+                        }
+                    }
+                    else {
+                        float iX = asteroids->at(i)->xOffSet + asteroidQuadrants[1].x;
+                        float iY = asteroids->at(i)->yOffSet + asteroidQuadrants[1].y;
+                        float jX = asteroids->at(j)->xOffSet + asteroidQuadrants[3].x;
+                        float jY = asteroids->at(j)->yOffSet + asteroidQuadrants[3].y;
+
+                        if(jX > iX && jY < iY) {
+                            std::cout << iX << " - " << iY << " | " << jX << " - " << jY << " -> " << "3" << std::endl;
+                            collisions.push_back(asteroids->at(i));
+                            collisions.push_back(asteroids->at(j));
+                        }
+                    }
+                }
+                else {
+                    if (asteroids->at(i)->yOffSet > asteroids->at(j)->yOffSet) {
+                        float iX = asteroids->at(i)->xOffSet + asteroidQuadrants[3].x;
+                        float iY = asteroids->at(i)->yOffSet + asteroidQuadrants[3].y;
+                        float jX = asteroids->at(j)->xOffSet + asteroidQuadrants[1].x;
+                        float jY = asteroids->at(j)->yOffSet + asteroidQuadrants[1].y;
+
+                        if(jX < iX && jY > iY) {
+                            collisions.push_back(asteroids->at(i));
+                            collisions.push_back(asteroids->at(j));
+                        }  
+                    }
+                    else {
+                        float iX = asteroids->at(i)->xOffSet + asteroidQuadrants[0].x;
+                        float iY = asteroids->at(i)->yOffSet + asteroidQuadrants[0].y;
+                        float jX = asteroids->at(j)->xOffSet + asteroidQuadrants[2].x;
+                        float jY = asteroids->at(j)->yOffSet + asteroidQuadrants[2].y;
+
+                        if(jX < iX && jY < iY) {
+                            collisions.push_back(asteroids->at(i));
+                            collisions.push_back(asteroids->at(j));
+                        }
+                    }
+                }
+                
+                for (Asteroid *collision : collisions) {
+                    for (int i=0; i<asteroids->size(); i++) {
+                        if (asteroids->at(i) == collision) {
+                            asteroids->erase(asteroids->begin()+i);
+                        }
+                    }
                 }
             }
         }
