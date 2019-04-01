@@ -21,3 +21,6 @@
 [submodule "Asteroids/Vendor/bullet"]
 	path = Asteroids/Vendor/bullet
 	url = https://github.com/bulletphysics/bullet3.git
+[submodule "Asteroids/Vendor/freetype"]
+	path = Asteroids/Vendor/freetype
+	url = https://github.com/aseprite/freetype2.git
