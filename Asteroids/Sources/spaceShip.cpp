@@ -11,9 +11,13 @@
 
 namespace SpaceShips {
     /*
-    * Ship Model
-    */
+        * Ship Model
+        */
     Model *model;
+
+    //
+    float max_X = 4.5;
+    float max_Y = 2.5;
 
     // Constructor
     SpaceShip::SpaceShip(const char* vertexShader, const char* fragmentShader) : shader(vertexShader, fragmentShader)
@@ -22,8 +26,8 @@ namespace SpaceShips {
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.006, 0.006, 0.006));
 
         /*
-        * Buffer configuration
-        */
+                * Buffer configuration
+                */
         unsigned int buffer;
         glGenBuffers(1, &buffer);
         glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -93,7 +97,7 @@ namespace SpaceShips {
         xOffSet += cos(angle) * speed;
         yOffSet += sin(angle) * speed;
 
-        //adjustOffSets();
+        adjustOffSets();
         
         shader.setFloat("xOffset", xOffSet);
         shader.setFloat("yOffset", yOffSet);
@@ -104,7 +108,7 @@ namespace SpaceShips {
         xOffSet -= cos(angle) * speed;
         yOffSet -= sin(angle) * speed;
     
-        //adjustOffSets();
+        adjustOffSets();
         
         shader.setFloat("xOffset", xOffSet);
         shader.setFloat("yOffset", yOffSet);
@@ -112,14 +116,14 @@ namespace SpaceShips {
 
     void SpaceShip::adjustOffSets()
     {
-        if(xOffSet > 1.0f || xOffSet < -1.0f)
+        if(xOffSet > max_X || xOffSet < -max_X)
         {
-        xOffSet *= -1.0f;
+            xOffSet *= -1.0f;
         }
 
-        if(yOffSet > 1.0f || yOffSet < -1.0f)
+        if(yOffSet > max_Y || yOffSet < -max_Y)
         {
-        yOffSet *= -1.0f;
+            yOffSet *= -1.0f;
         }
     }
 

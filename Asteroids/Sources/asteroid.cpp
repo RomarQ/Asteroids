@@ -9,24 +9,24 @@
 
 namespace Asteroids {
     /*
-    * Where Asteroids will be stored
-    */
+        * Where Asteroids will be stored
+        */
     vector<Asteroid*> asteroids;
 
     /*
-    * Global Model, that is used by all Asteroid Objects
-    */
+        * Global Model, that is used by all Asteroid Objects
+        */
     Model *model;
 
     /*
-    * Timestamp in seconds with 6 decimal units (0.000000)
-    * This timestamp allows to know when to spawn a new asteroid
-    */
+        * Timestamp in seconds with 6 decimal units (0.000000)
+        * This timestamp allows to know when to spawn a new asteroid
+        */
     float lastAsteroidTimestamp = 0;
 
     /*
-    * max x,z coordinates based on screen ration
-    */
+        * max x,z coordinates based on screen ration
+        */
     float max_X = 4.5;
     float max_Y = 2.5;
     float radius = 0.12;
@@ -87,11 +87,12 @@ namespace Asteroids {
 
         // Move asteroid according to the angle
         dislocateAsteroid();
+        rotateAsteroid();
 
         // configure transformation matrices
         glm::mat4 projection = glm::perspective(glm::radians(45.f), width / height, 0.1f, 1000.0f);
         projection = glm::translate(projection, glm::vec3(xOffSet, yOffSet, 0.0f));
-        projection = glm::rotate(projection, angle+glm::radians((rotation += rotationSpeed)), glm::vec3(0.0, 0.0, 1.0));
+        projection = glm::rotate(projection, angle+glm::radians(rotation), glm::vec3(0.0, 0.0, 1.0));
         projection = glm::translate(projection, glm::vec3(-xOffSet, -yOffSet, 0.0f));
         projection = glm::translate(projection, glm::vec3(xOffSet, yOffSet, 0.0f));
         glm::mat4 view = glm::lookAt(
@@ -121,25 +122,37 @@ namespace Asteroids {
         return true;
     }
 
+    void Asteroid::rotateAsteroid()
+    {
+        if ((lastRotationTimestamp+ASTEROID_ROTATION_COOLDOWN) > glfwGetTime()) return;
+        lastRotationTimestamp = glfwGetTime();
+        rotation += ASTEROID_ROTATION_SPEED;
+    }
+
     void Asteroid::dislocateAsteroid()
     {
+        if ((lastMovementTimestamp+ASTEROID_MOVEMENT_COOLDOWN) > glfwGetTime())
+            return;
+        
+        lastMovementTimestamp = glfwGetTime();
+
         float radians = glm::radians(angle);
 
         if (angle >= 0 && angle <= 90.f) {
-            xOffSet -= cos(radians) * ASTEROID_SPEED;
-            yOffSet -= sin(radians) * ASTEROID_SPEED;
+            xOffSet -= cos(radians) * ASTEROID_MOVEMENT_SPEED;
+            yOffSet -= sin(radians) * ASTEROID_MOVEMENT_SPEED;
         }
         else if (angle > 90.f && angle <= 180.f) {
-            xOffSet += cos(radians) * -ASTEROID_SPEED;
-            yOffSet -= sin(radians) * ASTEROID_SPEED;
+            xOffSet += cos(radians) * -ASTEROID_MOVEMENT_SPEED;
+            yOffSet -= sin(radians) * ASTEROID_MOVEMENT_SPEED;
         }
         else if (angle > 180.f && angle <= 270.f) {
-            xOffSet += cos(radians) * -ASTEROID_SPEED;
-            yOffSet += sin(radians) * -ASTEROID_SPEED;
+            xOffSet += cos(radians) * -ASTEROID_MOVEMENT_SPEED;
+            yOffSet += sin(radians) * -ASTEROID_MOVEMENT_SPEED;
         }
         else {
-            xOffSet -= cos(radians) * ASTEROID_SPEED;
-            yOffSet += sin(radians) * ASTEROID_SPEED;
+            xOffSet -= cos(radians) * ASTEROID_MOVEMENT_SPEED;
+            yOffSet += sin(radians) * ASTEROID_MOVEMENT_SPEED;
         }
     }
 
@@ -167,7 +180,7 @@ namespace Asteroids {
 
     bool readyToSpawn()
     {
-        return (glfwGetTime() > lastAsteroidTimestamp+ASTEROID_COOLDOWN);
+        return (glfwGetTime() > lastAsteroidTimestamp+ASTEROID_SPAWN_COOLDOWN);
     }
 
     void Asteroid::generateCoordinates()

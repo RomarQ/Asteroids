@@ -5,9 +5,12 @@
 #include "model.hpp"
 #include "camera.hpp"
 
-const float ASTEROID_SPEED = 0.005;
+const float ASTEROID_SPAWN_COOLDOWN = 1;
+const float ASTEROID_MOVEMENT_COOLDOWN = 0.01;
+const float ASTEROID_ROTATION_COOLDOWN = 0.01;
+const float ASTEROID_MOVEMENT_SPEED = 0.005;
+const float ASTEROID_ROTATION_SPEED = 0.1;
 const int ASTEROID_MAX = 30;
-const float ASTEROID_COOLDOWN = 1;
 
 namespace Asteroids {
     class Asteroid {
@@ -15,9 +18,11 @@ namespace Asteroids {
             Shader shader;
 
         public:
+            float scoreReward = 1.5;
             float angle = 0;
             float rotation = 0;
-            float rotationSpeed = 0.5;
+            float lastMovementTimestamp = 0;
+            float lastRotationTimestamp = 0;
             double xOffSet = 0;
             double yOffSet = 0;
 
@@ -26,6 +31,7 @@ namespace Asteroids {
 
             bool render(float width, float height, Camera camera);
             void dislocateAsteroid();
+            void rotateAsteroid();
             void generateCoordinates();
     };
 

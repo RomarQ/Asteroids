@@ -1,13 +1,6 @@
 #include "game.hpp"
 
 namespace Asteroids {
-
-    btDefaultCollisionConfiguration* collisionConfiguration;
-    btCollisionDispatcher* dispatcher;
-    btBroadphaseInterface* overlappingPairCache;
-    btSequentialImpulseConstraintSolver* solver;
-    btDiscreteDynamicsWorld* dynamicWorld;
-
     float Width, Height;
 
     Camera camera;
@@ -21,20 +14,20 @@ namespace Asteroids {
     float lastFrame = 0.0f;
 
     /*
-    *   Object radius
-    */
+        *   Object radius
+        */
     float asteroidRadius = 0.14;
     float projectileRadius = 0.09;
     float shipRadius = 0.15;
 
     /*
-    *   Collision Points of the obejct
-    * 
-    *       y
-    *   | 1 | 0 |
-    *   ----+-----> x
-    *   | 2 | 3 |
-    */
+        *   Collision Points of the obejct
+        * 
+        *       y
+        *   | 1 | 0 |
+        *   ----+-----> x
+        *   | 2 | 3 |
+        */
     glm::vec2 asteroidQuadrants[4] = {
         glm::vec2(asteroidRadius, asteroidRadius),
         glm::vec2(-asteroidRadius, asteroidRadius),
@@ -55,16 +48,9 @@ namespace Asteroids {
     };
 
     Game::Game(float width, float height, GLFWwindow* window) : 
-        State(GAME_ACTIVE)
-    {
-        collisionConfiguration = new btDefaultCollisionConfiguration();
-        dispatcher = new btCollisionDispatcher(collisionConfiguration);
-        overlappingPairCache = new btDbvtBroadphase();
-        solver = new btSequentialImpulseConstraintSolver;
-        dynamicWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-
-        dynamicWorld->setGravity(btVector3(0.0, -10.0, 0.0));
-        
+        State(GAME_ACTIVE),
+        score(0.0)
+    { 
         Width = width;
         Height = height;
         camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -100,6 +86,7 @@ namespace Asteroids {
 
     void Game::Render()
     {
+        std::cout << "Score: " << score << std::endl;
         Game::checkProjectileCollisions();
         Game::checkAsteroidCollisions();
 
@@ -278,6 +265,7 @@ namespace Asteroids {
         for (Asteroid *collision : aCollisions) {
             for (int i=0; i<asteroids->size(); i++) {
                 if (asteroids->at(i) == collision) {
+                    score += asteroids->at(i)->scoreReward;
                     asteroids->erase(asteroids->begin()+i);
                     break;
                 }

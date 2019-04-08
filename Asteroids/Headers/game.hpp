@@ -1,7 +1,6 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <btBulletDynamicsCommon.h>
 #include <GLFW/glfw3.h>
 #include "camera.hpp"
 
@@ -29,6 +28,9 @@ namespace Asteroids {
         public:
             // Game state
             GameState State;
+
+            // Score Counter
+            float score = 0;
 
             // Space Ship
             // ------------------------------------

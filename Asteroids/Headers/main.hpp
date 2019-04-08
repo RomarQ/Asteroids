@@ -12,6 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <GLFW/glfw3.h>
 #include <math.h>
+#include <time.h>
 
 #include "shader.hpp"
 // Reference: https://github.com/nothings/stb/blob/master/stb_image.h#L4

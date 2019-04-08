@@ -69,7 +69,6 @@ int main() {
 
     // Rendering Loop
     while (!glfwWindowShouldClose(window)) {
-        srand(time(NULL)); // update random seed
         // calls fps counter
         showFPS(window);
 
