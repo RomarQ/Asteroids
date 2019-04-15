@@ -29,20 +29,21 @@ namespace Asteroids {
         */
     float max_X = 4.5;
     float max_Y = 2.5;
-    float radius = 0.12;
 
     Asteroid::Asteroid(float width, float height, Camera camera) : 
         shader("../Asteroids/Shaders/asteroid.vs", "../Asteroids/Shaders/asteroid.fs"),
-        angle(((double) rand() / RAND_MAX) * 360.0f)
+        angle(((double) rand() / RAND_MAX) * 360.0f),
+        type(((double) rand() / RAND_MAX) * asteroidTypes + 1)
     {
         generateCoordinates();
         //
-        glm::mat4 modelMatrix = glm::mat4(1.0f);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1, 0.1, 0.1));
+        shader.use();
+        glm::mat4 modelMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(type * 0.1, type * 0.1, type * 0.1));
+        shader.setMat4("modelMatrix", modelMatrix);
 
         /*
-        * Buffer configuration
-        */
+                  *         Buffer configuration
+                  */
         unsigned int buffer;
         glGenBuffers(1, &buffer);
         glBindBuffer(GL_ARRAY_BUFFER, buffer);

@@ -11,6 +11,17 @@ const float ASTEROID_ROTATION_COOLDOWN = 0.01;
 const float ASTEROID_MOVEMENT_SPEED = 0.005;
 const float ASTEROID_ROTATION_SPEED = 0.1;
 const int ASTEROID_MAX = 30;
+const float ASTEROID_BASE_RADIUS = 0.14;
+
+const glm::vec2 ASTEROID_QUADRANTS[4] = {
+    glm::vec2(ASTEROID_BASE_RADIUS, ASTEROID_BASE_RADIUS),
+    glm::vec2(-ASTEROID_BASE_RADIUS, ASTEROID_BASE_RADIUS),
+    glm::vec2(-ASTEROID_BASE_RADIUS, -ASTEROID_BASE_RADIUS),
+    glm::vec2(ASTEROID_BASE_RADIUS, -ASTEROID_BASE_RADIUS)
+};
+
+const int asteroidTypes = 2;
+const float maxScore = 3.5;
 
 namespace Asteroids {
     class Asteroid {
@@ -18,7 +29,7 @@ namespace Asteroids {
             Shader shader;
 
         public:
-            float scoreReward = 1.5;
+            int type = 1;
             float angle = 0;
             float rotation = 0;
             float lastMovementTimestamp = 0;

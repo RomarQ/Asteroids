@@ -2,11 +2,12 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
-#include <sstream> // std::ostringstream
+#include <sstream>
 
 // Local Headers
 #include "game.hpp"
 using namespace Asteroids;
+using namespace Games;
 #include "spaceShip.hpp"
 #include "model.hpp"
 #include "shader.hpp"

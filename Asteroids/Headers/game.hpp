@@ -10,6 +10,7 @@
 
 using namespace Projectiles;
 using namespace SpaceShips;
+using namespace Asteroids;
 
 // Represents the current state of the game
 enum GameState {
@@ -18,7 +19,7 @@ enum GameState {
     GAME_WIN
 };
 
-namespace Asteroids {
+namespace Games {
 
     void mouse_callback(GLFWwindow* window, double xpos, double ypos);
     void framebuffer_size_callback(GLFWwindow* window, int width, int height);

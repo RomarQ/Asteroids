@@ -9,23 +9,23 @@
 
 namespace Projectiles {
     /*
-    * Where Projectiles will be stored
-    */
+        * Where Projectiles will be stored
+        */
     vector<Projectile*> projectiles;
 
     /*
-    * Global Model, that is used by all Projectile Objects
-    */
+        * Global Model, that is used by all Projectile Objects
+        */
     Model *model;
 
     /*
-    * Timestamp in seconds with 6 decimal units (0.000000)
-    * This timestamp allows to know when a projectile can be fired
-    */
+        * Timestamp in seconds with 6 decimal units (0.000000)
+        * This timestamp allows to know when a projectile can be fired
+        */
     float lastProjectileTimestamp = 0;
 
     Projectile::Projectile(float width, float height, float x, float y, float angle) : 
-        shader("../Asteroids/Shaders/asteroid.vs", "../Asteroids/Shaders/asteroid.fs"),
+        shader("../Asteroids/Shaders/projectile.vs", "../Asteroids/Shaders/projectile.fs"),
         xOffSet(x),
         yOffSet(y),
         angle(angle)

@@ -22,7 +22,6 @@ endif()
 
 include_directories(Asteroids/Headers/
                     Asteroids/Vendor/assimp/include/
-                    Asteroids/Vendor/bullet/src/
                     Asteroids/Vendor/glad/include/
                     Asteroids/Vendor/glfw/include/
                     Asteroids/Vendor/glm/
