@@ -6,11 +6,7 @@
 
 // Local Headers
 #include "game.hpp"
-using namespace Asteroids;
 using namespace Games;
-#include "spaceShip.hpp"
-#include "model.hpp"
-#include "shader.hpp"
 #include "main.hpp"
 
 int main() {
@@ -54,6 +50,9 @@ int main() {
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LEQUAL);
     glDepthRange(0.0f, 1.0f);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Show OpenGL version
     std::cerr << "OpenGL " << glGetString(GL_VERSION) << std::endl;
@@ -63,10 +62,6 @@ int main() {
     
     // Loading models
     game.Init();
-
-    // load models
-    // -----------
-    Shader shader("../Asteroids/Shaders/model.vs", "../Asteroids/Shaders/model.fs");
 
     // Rendering Loop
     while (!glfwWindowShouldClose(window)) {

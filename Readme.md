@@ -13,9 +13,9 @@
 * [X] Space Ship Projectiles
 * [X] Space Ship vs Asteroid Collision
 * [X] Projectile vs Asteroid Collision
-* [ ] Scoring System
+* [X] Scoring System
 * [ ] Game Start/End Menu
-* [ ] CLEAN THIS SPAGHETTI CODE!!!
+* [ ] CLEAN ALL SPAGHETTI CODE!!!
   
 ## Summary
 School Project [ Will fill this later ]

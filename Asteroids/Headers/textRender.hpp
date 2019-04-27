@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 
 #include "texture.h"
-#include "shader.h"
+#include "shader.hpp"
 
 namespace TextRenders {
 

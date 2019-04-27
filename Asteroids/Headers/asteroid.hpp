@@ -1,27 +1,28 @@
 #ifndef ASTEROID_H
 #define ASTEROID_H
 
+#include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_access.hpp>
+#include <GLFW/glfw3.h>
+
 #include "shader.hpp"
 #include "model.hpp"
 #include "camera.hpp"
+#include "collision.hpp"
+using namespace Collision;
 
 const float ASTEROID_SPAWN_COOLDOWN = 1;
 const float ASTEROID_MOVEMENT_COOLDOWN = 0.01;
 const float ASTEROID_ROTATION_COOLDOWN = 0.01;
-const float ASTEROID_MOVEMENT_SPEED = 0.005;
+const float ASTEROID_MOVEMENT_SPEED = 0.01;
 const float ASTEROID_ROTATION_SPEED = 0.1;
-const int ASTEROID_MAX = 30;
-const float ASTEROID_BASE_RADIUS = 0.14;
+const int ASTEROID_MAX = 1;
+const float ASTEROID_SCALE = 0.00035;
 
-const glm::vec2 ASTEROID_QUADRANTS[4] = {
-    glm::vec2(ASTEROID_BASE_RADIUS, ASTEROID_BASE_RADIUS),
-    glm::vec2(-ASTEROID_BASE_RADIUS, ASTEROID_BASE_RADIUS),
-    glm::vec2(-ASTEROID_BASE_RADIUS, -ASTEROID_BASE_RADIUS),
-    glm::vec2(ASTEROID_BASE_RADIUS, -ASTEROID_BASE_RADIUS)
-};
-
-const int asteroidTypes = 2;
-const float maxScore = 3.5;
+const int asteroidTypes = 1;
 
 namespace Asteroids {
     class Asteroid {
@@ -52,6 +53,7 @@ namespace Asteroids {
 
     void renderAsteroids(float width, float height, Camera camera);
     bool readyToSpawn();
+    AABB asteroidHitbox();
 
 }
 

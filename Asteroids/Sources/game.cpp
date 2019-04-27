@@ -1,4 +1,17 @@
+#include <map>
+
 #include "game.hpp"
+
+/// Holds all state information relevant to a character as loaded using FreeType
+struct Character {
+    GLuint TextureID;   // ID handle of the glyph texture
+    glm::ivec2 Size;    // Size of glyph
+    glm::ivec2 Bearing;  // Offset from baseline to left/top of glyph
+    GLuint Advance;    // Horizontal offset to advance to next glyph
+};
+
+std::map<GLchar, Character> Characters;
+GLuint VAO, VBO;
 
 namespace Games {
     float Width, Height;
@@ -14,31 +27,9 @@ namespace Games {
     float lastFrame = 0.0f;
 
     /*
-        *   Object radius
-        */
-    float projectileRadius = 0.09;
+    *   Object radius
+    */
     float shipRadius = 0.15;
-
-    /*
-        *   Collision Points of the obejct
-        * 
-        *       y
-        *   | 1 | 0 |
-        *   ----+-----> x
-        *   | 2 | 3 |
-        */
-    glm::vec2 projectileQuadrants[4] = {
-        glm::vec2(projectileRadius, projectileRadius),
-        glm::vec2(-projectileRadius, projectileRadius),
-        glm::vec2(-projectileRadius, -projectileRadius),
-        glm::vec2(projectileRadius, -projectileRadius)
-    };
-    glm::vec2 shipQuadrants[4] = {
-        glm::vec2(shipRadius, shipRadius),
-        glm::vec2(-shipRadius, shipRadius),
-        glm::vec2(-shipRadius, -shipRadius),
-        glm::vec2(shipRadius, -shipRadius)
-    };
 
     Game::Game(float width, float height, GLFWwindow* window) : 
         State(GAME_ACTIVE),
@@ -52,8 +43,86 @@ namespace Games {
         glfwSetCursorPosCallback(window, mouse_callback);
         glfwSetScrollCallback(window, scroll_callback);
 
-        // tell GLFW to capture our mouse
+        // capture our mouse
         //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        // Compile and setup the shader
+        textShader = new Shader("../Asteroids/Shaders/text.vs", "../Asteroids/Shaders/text.fs");
+        glm::mat4 projection = glm::ortho(0.0f, Width, 0.0f, Height);
+        textShader->use();
+
+        textShader->setMat4("projection", projection);
+
+        // FreeType
+        FT_Library ft;
+        // All functions return a value different than 0 whenever an error occurred
+        if (FT_Init_FreeType(&ft))
+            std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+
+        // Load font as face
+        FT_Face face;
+        if (FT_New_Face(ft, "../Asteroids/Fonts/arial.ttf", 0, &face))
+            std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
+
+        // Set size to load glyphs as
+        FT_Set_Pixel_Sizes(face, 0, 48);
+
+        // Disable byte-alignment restriction
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1); 
+
+        // Load first 128 characters of ASCII set
+        for (GLubyte c = 0; c < 128; c++)
+        {
+            // Load character glyph 
+            if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+            {
+                std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+                continue;
+            }
+            // Generate texture
+            GLuint texture;
+            glGenTextures(1, &texture);
+            glBindTexture(GL_TEXTURE_2D, texture);
+            glTexImage2D(
+                GL_TEXTURE_2D,
+                0,
+                GL_RED,
+                face->glyph->bitmap.width,
+                face->glyph->bitmap.rows,
+                0,
+                GL_RED,
+                GL_UNSIGNED_BYTE,
+                face->glyph->bitmap.buffer
+            );
+            // Set texture options
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            // Now store character for later use
+            Character character = {
+                texture,
+                glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+                glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+                face->glyph->advance.x
+            };
+            Characters.insert(std::pair<GLchar, Character>(c, character));
+        }
+        glBindTexture(GL_TEXTURE_2D, 0);
+        // Destroy FreeType once we're finished
+        FT_Done_Face(face);
+        FT_Done_FreeType(ft);
+
+        
+        // Configure VAO/VBO for texture quads
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
     }
 
     Game::~Game()
@@ -72,14 +141,8 @@ namespace Games {
         spaceShip = new SpaceShip("../Asteroids/Shaders/space_ship.vs", "../Asteroids/Shaders/space_ship.fs");
     }
 
-    void Game::Update(float dt)
-    {
-
-    }
-
     void Game::Render()
     {
-        //std::cout << "Score: " << score << std::endl;
         Game::checkProjectileCollisions();
         Game::checkAsteroidCollisions();
 
@@ -89,7 +152,9 @@ namespace Games {
 
         spaceShip->render(Width, Height, camera);
         Asteroids::renderAsteroids(Width, Height, camera);
-        Projectiles::renderProjectiles(Width, Height);
+        Projectiles::renderProjectiles(Width, Height, camera);
+
+        renderText(textShader, std::to_string(score), 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
     }
 
     void Game::ProcessInput(GLFWwindow *window)
@@ -138,45 +203,23 @@ namespace Games {
 
     bool Game::checkShipCollisions()
     {
-        vector<Asteroid*> *asteroids = Asteroids::getAsteroids();
+        vector<Asteroid*> *asteroids = getAsteroids();
 
-        for (int i = 0; i<asteroids->size(); i++) {
+        vector<Asteroid*> collisions;
 
-            if (spaceShip->xOffSet > asteroids->at(i)->xOffSet) {
-                if (spaceShip->yOffSet > asteroids->at(i)->yOffSet) {
-                    float sX = spaceShip->xOffSet + shipQuadrants[2].x;
-                    float sY = spaceShip->yOffSet + shipQuadrants[2].y;
-                    float aX = asteroids->at(i)->xOffSet + ASTEROID_QUADRANTS[0].x * asteroids->at(i)->type;
-                    float aY = asteroids->at(i)->yOffSet + ASTEROID_QUADRANTS[0].y * asteroids->at(i)->type;
+        AABB hitBox = asteroidHitbox();
 
-                    if(aX > sX && aY > sY) return true;
-                }
-                else {
-                    float sX = spaceShip->xOffSet + shipQuadrants[1].x;
-                    float sY = spaceShip->yOffSet + shipQuadrants[1].y;
-                    float aX = asteroids->at(i)->xOffSet + ASTEROID_QUADRANTS[3].x * asteroids->at(i)->type;
-                    float aY = asteroids->at(i)->yOffSet + ASTEROID_QUADRANTS[3].y * asteroids->at(i)->type;
+        for (Asteroid * asteroid : *asteroids) {
+            
+            float width = abs(asteroid->xOffSet - spaceShip->xOffSet);
+            float height = abs(asteroid->yOffSet - spaceShip->yOffSet);
 
-                    if(aX > sX && aY < sY) return true;
-                }
-            }
-            else {
-                if (spaceShip->yOffSet > asteroids->at(i)->yOffSet) {
-                    float sX = spaceShip->xOffSet + shipQuadrants[3].x;
-                    float sY = spaceShip->yOffSet + shipQuadrants[3].y;
-                    float aX = asteroids->at(i)->xOffSet + ASTEROID_QUADRANTS[1].x * asteroids->at(i)->type;
-                    float aY = asteroids->at(i)->yOffSet + ASTEROID_QUADRANTS[1].y * asteroids->at(i)->type;
+            float distance = sqrt(width*width + height*height);
 
-                    if(aX < sX && aY > sY) return true;
-                }
-                else {
-                    float sX = spaceShip->xOffSet + shipQuadrants[0].x;
-                    float sY = spaceShip->yOffSet + shipQuadrants[0].y;
-                    float aX = asteroids->at(i)->xOffSet + ASTEROID_QUADRANTS[2].x * asteroids->at(i)->type;
-                    float aY = asteroids->at(i)->yOffSet + ASTEROID_QUADRANTS[2].y * asteroids->at(i)->type;
+            float minDistanceForImpact = hitBox.max.x + shipRadius;
 
-                    if(aX < sX && aY < sY) return true;
-                }
+            if ( minDistanceForImpact > distance ) {
+                return true;
             }
         }
 
@@ -188,65 +231,33 @@ namespace Games {
         vector<Projectile*> *projectiles = Projectiles::getProjectiles();
         vector<Asteroid*> *asteroids = Asteroids::getAsteroids();
 
+        std::cout << projectiles->size() << std::endl;
+
         vector<Asteroid*> aCollisions;
         vector<Projectile*> pCollisions;
 
-        for (int i = 0; i<projectiles->size(); i++) {
-            for (int j = 0; j<asteroids->size(); j++) {
-               
-                if (projectiles->at(i)->xOffSet > asteroids->at(j)->xOffSet) {
-                    if (projectiles->at(i)->yOffSet > asteroids->at(j)->yOffSet) {
-                        float iX = projectiles->at(i)->xOffSet + projectileQuadrants[2].x;
-                        float iY = projectiles->at(i)->yOffSet + projectileQuadrants[2].y;
-                        float jX = asteroids->at(j)->xOffSet + ASTEROID_QUADRANTS[0].x * asteroids->at(j)->type;
-                        float jY = asteroids->at(j)->yOffSet + ASTEROID_QUADRANTS[0].y * asteroids->at(j)->type;
+        AABB aHitBox = asteroidHitbox();
+        AABB pHitBox = projectileHitbox();
 
-                        if(jX > iX && jY > iY) {
-                            pCollisions.push_back(projectiles->at(i));
-                            aCollisions.push_back(asteroids->at(j));
-                        }
-                    }
-                    else {
-                        float iX = projectiles->at(i)->xOffSet + projectileQuadrants[1].x;
-                        float iY = projectiles->at(i)->yOffSet + projectileQuadrants[1].y;
-                        float jX = asteroids->at(j)->xOffSet + ASTEROID_QUADRANTS[3].x * asteroids->at(j)->type;
-                        float jY = asteroids->at(j)->yOffSet + ASTEROID_QUADRANTS[3].y * asteroids->at(j)->type;
+        for (long unsigned int i = 0; i < projectiles->size(); i++) {
+            for (long unsigned int j = 0; j < asteroids->size(); j++) {
 
-                        if(jX > iX && jY < iY) {
-                            pCollisions.push_back(projectiles->at(i));
-                            aCollisions.push_back(asteroids->at(j));
-                        }
-                    }
-                }
-                else {
-                    if (projectiles->at(i)->yOffSet > asteroids->at(j)->yOffSet) {
-                        float iX = projectiles->at(i)->xOffSet + projectileQuadrants[3].x;
-                        float iY = projectiles->at(i)->yOffSet + projectileQuadrants[3].y;
-                        float jX = asteroids->at(j)->xOffSet + ASTEROID_QUADRANTS[1].x * asteroids->at(j)->type;
-                        float jY = asteroids->at(j)->yOffSet + ASTEROID_QUADRANTS[1].y * asteroids->at(j)->type;
+                float width = abs(projectiles->at(i)->xOffSet - asteroids->at(j)->xOffSet);
+                float height = abs(projectiles->at(i)->yOffSet - asteroids->at(j)->yOffSet);
 
-                        if(jX < iX && jY > iY) {
-                            pCollisions.push_back(projectiles->at(i));
-                            aCollisions.push_back(asteroids->at(j));
-                        }  
-                    }
-                    else {
-                        float iX = projectiles->at(i)->xOffSet + projectileQuadrants[0].x;
-                        float iY = projectiles->at(i)->yOffSet + projectileQuadrants[0].y;
-                        float jX = asteroids->at(j)->xOffSet + ASTEROID_QUADRANTS[2].x * asteroids->at(j)->type;
-                        float jY = asteroids->at(j)->yOffSet + ASTEROID_QUADRANTS[2].y * asteroids->at(j)->type;
+                float distance = sqrt(width*width + height*height);
 
-                        if(jX < iX && jY < iY) {
-                            pCollisions.push_back(projectiles->at(i));
-                            aCollisions.push_back(asteroids->at(j));
-                        }
-                    }
+                float minDistanceForImpact = aHitBox.max.x + pHitBox.max.x;
+
+                if ( minDistanceForImpact > distance ) {
+                    aCollisions.push_back(asteroids->at(j));
+                    pCollisions.push_back(projectiles->at(i));
                 }
             }
         }
 
         for (Projectile *collision : pCollisions) {
-            for (int i=0; i<projectiles->size(); i++) {
+            for (long unsigned int i=0; i<projectiles->size(); i++) {
                 if (projectiles->at(i) == collision) {
                     projectiles->erase(projectiles->begin()+i);
                     break;
@@ -255,9 +266,9 @@ namespace Games {
         }
 
         for (Asteroid *collision : aCollisions) {
-            for (int i=0; i<asteroids->size(); i++) {
+            for (long unsigned int i=0; i<asteroids->size(); i++) {
                 if (asteroids->at(i) == collision) {
-                    score += maxScore / asteroids->at(i)->type;
+                    score += asteroids->at(i)->type;
                     asteroids->erase(asteroids->begin()+i);
                     break;
                 }
@@ -267,73 +278,84 @@ namespace Games {
 
     void Game::checkAsteroidCollisions()
     {   
-        vector<Asteroid*> *asteroids = Asteroids::getAsteroids();
+        vector<Asteroid*> *asteroids = getAsteroids();
 
         vector<Asteroid*> collisions;
 
-        for (int i = 0; i<asteroids->size(); i++) {
-            for (int j = 0; j<asteroids->size(); j++) {
-                if (i == j) continue;
+        AABB hitBox = asteroidHitbox();
+
+        for (long unsigned int a1 = 0; a1 < asteroids->size(); a1++) {
+            for (long unsigned int a2 = 0; a2 < asteroids->size(); a2++) {
+                if (a1 <= a2) continue;
                 
-                if (asteroids->at(i)->xOffSet > asteroids->at(j)->xOffSet) {
-                    if (asteroids->at(i)->yOffSet > asteroids->at(j)->yOffSet) {
-                        float iX = asteroids->at(i)->xOffSet + ASTEROID_QUADRANTS[2].x * asteroids->at(i)->type;
-                        float iY = asteroids->at(i)->yOffSet + ASTEROID_QUADRANTS[2].y * asteroids->at(i)->type;
-                        float jX = asteroids->at(j)->xOffSet + ASTEROID_QUADRANTS[0].x * asteroids->at(j)->type;
-                        float jY = asteroids->at(j)->yOffSet + ASTEROID_QUADRANTS[0].y * asteroids->at(j)->type;
+                float width = abs(asteroids->at(a1)->xOffSet - asteroids->at(a2)->xOffSet);
+                float height = abs(asteroids->at(a1)->yOffSet - asteroids->at(a2)->yOffSet);
 
-                        if(jX > iX && jY > iY) {
-                            collisions.push_back(asteroids->at(i));
-                            collisions.push_back(asteroids->at(j));
-                        }
-                    }
-                    else {
-                        float iX = asteroids->at(i)->xOffSet + ASTEROID_QUADRANTS[1].x * asteroids->at(i)->type;
-                        float iY = asteroids->at(i)->yOffSet + ASTEROID_QUADRANTS[1].y * asteroids->at(i)->type;
-                        float jX = asteroids->at(j)->xOffSet + ASTEROID_QUADRANTS[3].x * asteroids->at(j)->type;
-                        float jY = asteroids->at(j)->yOffSet + ASTEROID_QUADRANTS[3].y * asteroids->at(j)->type;
+                float distance = sqrt(width*width + height*height);
 
-                        if(jX > iX && jY < iY) {
-                            std::cout << iX << " - " << iY << " | " << jX << " - " << jY << " -> " << "3" << std::endl;
-                            collisions.push_back(asteroids->at(i));
-                            collisions.push_back(asteroids->at(j));
-                        }
-                    }
-                }
-                else {
-                    if (asteroids->at(i)->yOffSet > asteroids->at(j)->yOffSet) {
-                        float iX = asteroids->at(i)->xOffSet + ASTEROID_QUADRANTS[3].x * asteroids->at(i)->type;
-                        float iY = asteroids->at(i)->yOffSet + ASTEROID_QUADRANTS[3].y * asteroids->at(i)->type;
-                        float jX = asteroids->at(j)->xOffSet + ASTEROID_QUADRANTS[1].x * asteroids->at(j)->type;
-                        float jY = asteroids->at(j)->yOffSet + ASTEROID_QUADRANTS[1].y * asteroids->at(j)->type;
+                float minDistanceForImpact = 2*hitBox.max.x;
 
-                        if(jX < iX && jY > iY) {
-                            collisions.push_back(asteroids->at(i));
-                            collisions.push_back(asteroids->at(j));
-                        }  
-                    }
-                    else {
-                        float iX = asteroids->at(i)->xOffSet + ASTEROID_QUADRANTS[0].x * asteroids->at(i)->type;
-                        float iY = asteroids->at(i)->yOffSet + ASTEROID_QUADRANTS[0].y * asteroids->at(i)->type;
-                        float jX = asteroids->at(j)->xOffSet + ASTEROID_QUADRANTS[2].x * asteroids->at(j)->type;
-                        float jY = asteroids->at(j)->yOffSet + ASTEROID_QUADRANTS[2].y * asteroids->at(j)->type;
+                if ( minDistanceForImpact > distance ) {
+                    //FORMULA: 2*(V dot N)*N - V
+                    glm::vec2 vecA1 = glm::vec2(cos(asteroids->at(a1)->angle), sin(asteroids->at(a1)->angle));
+                    glm::vec2 vecA2 = glm::vec2(cos(asteroids->at(a2)->angle), sin(asteroids->at(a2)->angle));
+                    glm::vec2 nVecA1 = 2*glm::dot(vecA1, vecA2)*vecA2-vecA1;
+                    glm::vec2 nVecA2 = 2*glm::dot(vecA2, vecA1)*vecA1-vecA2;
 
-                        if(jX < iX && jY < iY) {
-                            collisions.push_back(asteroids->at(i));
-                            collisions.push_back(asteroids->at(j));
-                        }
-                    }
-                }
-                
-                for (Asteroids::Asteroid *collision : collisions) {
-                    for (int i=0; i<asteroids->size(); i++) {
-                        if (asteroids->at(i) == collision) {
-                            asteroids->erase(asteroids->begin()+i);
-                        }
-                    }
+                    asteroids->at(a1)->angle = glm::degrees(acos(nVecA1.x));
+                    asteroids->at(a2)->angle = glm::degrees(acos(nVecA2.x));
                 }
             }
         }
+    }
+
+    int PositiveAngle(int angle) {
+        return angle < 0 ? 360+angle : angle;
+    }
+
+    void renderText(Shader *shader, std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color)
+    {
+        // Activate corresponding render state	
+        shader->use();
+        shader->setVec3("textColor", color.x, color.y, color.z);
+        glActiveTexture(GL_TEXTURE0);
+        glBindVertexArray(VAO);
+
+        // Iterate through all characters
+        std::string::const_iterator c;
+        for (c = text.begin(); c != text.end(); c++) 
+        {
+            Character ch = Characters[*c];
+
+            GLfloat xpos = x + ch.Bearing.x * scale;
+            GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+
+            GLfloat w = ch.Size.x * scale;
+            GLfloat h = ch.Size.y * scale;
+            // Update VBO for each character
+            GLfloat vertices[6][4] = {
+                { xpos,     ypos + h,   0.0, 0.0 },            
+                { xpos,     ypos,       0.0, 1.0 },
+                { xpos + w, ypos,       1.0, 1.0 },
+
+                { xpos,     ypos + h,   0.0, 0.0 },
+                { xpos + w, ypos,       1.0, 1.0 },
+                { xpos + w, ypos + h,   1.0, 0.0 }           
+            };
+            // Render glyph texture over quad
+            glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+            // Update content of VBO memory
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // Be sure to use glBufferSubData and not glBufferData
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            // Render quad
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+            // Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+            x += (ch.Advance >> 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+        }
+        glBindVertexArray(0);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     // glfw: whenever the mouse moves, this callback is called

@@ -2,9 +2,6 @@
 
 #include <unistd.h> // Used for Debugging, will allow to check the current directory.
 
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-
 #include <string>
 #include <fstream>
 #include <sstream>

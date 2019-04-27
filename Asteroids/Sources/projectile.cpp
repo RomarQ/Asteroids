@@ -9,19 +9,23 @@
 
 namespace Projectiles {
     /*
-        * Where Projectiles will be stored
-        */
+    * Where Projectiles will be stored
+    */
     vector<Projectile*> projectiles;
 
     /*
-        * Global Model, that is used by all Projectile Objects
-        */
+    * Global Model, that is used by all Projectile Objects
+    */
     Model *model;
+    /*
+    *   HitBox used for collision
+    */
+    AABB hitBox;
 
     /*
-        * Timestamp in seconds with 6 decimal units (0.000000)
-        * This timestamp allows to know when a projectile can be fired
-        */
+    * Timestamp in seconds with 6 decimal units (0.000000)
+    * This timestamp allows to know when a projectile can be fired
+    */
     float lastProjectileTimestamp = 0;
 
     Projectile::Projectile(float width, float height, float x, float y, float angle) : 
@@ -31,7 +35,7 @@ namespace Projectiles {
         angle(angle)
     {
         glm::mat4 modelMatrix = glm::mat4(1.0f);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.05, 0.05, 0.05));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(PROJECTILE_SCALE, PROJECTILE_SCALE, PROJECTILE_SCALE));
 
         /*
         * Buffer configuration
@@ -73,7 +77,7 @@ namespace Projectiles {
         for (Projectile *p : projectiles) delete p;
     }
 
-    bool Projectile::render(float width, float height)
+    bool Projectile::render(float width, float height, Camera camera)
     {
         // activate shader
         shader.use();
@@ -93,15 +97,12 @@ namespace Projectiles {
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
 
-        // draw projectile
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, model->textures_loaded[0].id);
-        for (unsigned int i = 0; i < model->meshes.size(); i++)
-        {
-            glBindVertexArray(model->meshes[i].VAO);
-            glDrawElements(GL_TRIANGLES, model->meshes[i].indices.size(), GL_UNSIGNED_INT, 0);
-            glBindVertexArray(0);
+        if(!camera.isInsideFrustum(projection * view)) {
+            return false;
         }
+
+        // draw projectile
+        model->Draw(shader);
 
         return true;
     }
@@ -117,6 +118,11 @@ namespace Projectiles {
 
     void loadModel(string modelPath) {
         model = new Model(modelPath);
+        hitBox = getAABB(model->meshes.at(0), PROJECTILE_SCALE);
+    }
+
+    AABB projectileHitbox() {
+        return hitBox;
     }
 
     bool fireProjectile(float width, float height, float x, float y, float angle)
@@ -129,11 +135,12 @@ namespace Projectiles {
         return false;
     }
 
-    void renderProjectiles(float width, float height)
+    void renderProjectiles(float width, float height, Camera camera)
     {
-        for(Projectile * projectile : projectiles)
+        for(long unsigned int i = 0; i < projectiles.size(); i++)
         {
-            projectile->render(width, height);
+            if(!projectiles.at(i)->render(width, height, camera))
+                projectiles.erase(projectiles.begin()+i);
         }
     }
 
