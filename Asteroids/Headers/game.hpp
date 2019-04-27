@@ -3,14 +3,13 @@
 
 #include "camera.hpp"
 
-#include <GLFW/glfw3.h>
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include <glm/glm.hpp>
-
+#include "textRenderer.hpp"
 #include "spaceShip.hpp"
 #include "projectile.hpp"
 #include "asteroid.hpp"
+#include "textRenderer.hpp"
+
+using namespace TextRenders;
 using namespace Asteroids;
 using namespace Projectiles;
 using namespace SpaceShips;
@@ -28,7 +27,6 @@ namespace Games {
     void framebuffer_size_callback(GLFWwindow* window, int width, int height);
     void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
     int PositiveAngle(int angle);
-    void renderText(Shader *shader, std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color);
 
     class Game {
         public:
@@ -37,6 +35,7 @@ namespace Games {
 
             // Score Counter
             int score = 0;
+            TextRenderer scoreDisplay;
 
             Shader *textShader;
 

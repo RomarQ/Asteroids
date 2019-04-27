@@ -44,8 +44,6 @@ namespace Asteroids {
         glBindBuffer(GL_ARRAY_BUFFER, buffer);
         glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), &modelMatrix, GL_STATIC_DRAW);
 
-        std::cout << model->meshes.at(0).vertices.size() << std::endl;
-
         unsigned int VAO = model->meshes.at(0).VAO;
         glBindVertexArray(VAO);
         // set attribute pointers for matrix (4 times vec4)
@@ -97,9 +95,8 @@ namespace Asteroids {
         if(!camera.isInsideFrustum(projection * view)) {
             return false;
         }
-        //std::cout << "is inside: " << camera.isInsideFrustum(projection * view) << std::endl;
 
-        // draw asteroid
+        // Draw asteroid
         model->Draw(shader);
 
         return true;

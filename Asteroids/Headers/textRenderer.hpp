@@ -2,11 +2,15 @@
 #define TEXT_RENDER_H
 
 #include <map>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
-#include <GL/glew.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/matrix_access.hpp>
 
-#include "texture.h"
 #include "shader.hpp"
 
 namespace TextRenders {
@@ -19,26 +23,23 @@ namespace TextRenders {
         int Advance;            // Horizontal offset to advance to next glyph
     };
 
-    // A renderer class for rendering text displayed by a font loaded using the 
-    // FreeType library. A single font is loaded, processed into a list of Character
-    // items for later rendering.
-    class TextRender {
+    class TextRenderer {
         public:
             // Holds a list of pre-compiled Characters
-            std::map<char, Character> Characters; 
+            std::map<char, Character> characters; 
             // Shader used for text rendering
-            Shader TextShader;
+            Shader shader;
             // Constructor
-            TextRenderer(unsigned int width, unsigned int height);
+            TextRenderer(float width, float height);
             // Pre-compiles a list of characters from the given font
             void Load(std::string font, unsigned int fontSize);
             // Renders a string of text using the precompiled list of characters
-            void RenderText(std::string text, float x, GLfloat y, float scale, glm::vec3 color = glm::vec3(1.0f));
+            void renderText(std::string text, float x, float y, float scale, glm::vec3 color = glm::vec3(1.0f));
+
         private:
             // Render state
             unsigned int VAO, VBO;
-};
-    }   
+    };
 }
 
 #endif

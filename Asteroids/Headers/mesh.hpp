@@ -9,7 +9,6 @@ using namespace std;
 
 #include "shader.hpp"
 
-
 struct Vertex {
     // position
     glm::vec3 Position;
