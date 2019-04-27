@@ -21,8 +21,10 @@ enum GameState {
     GAME_WIN
 };
 
-namespace Games {
+const int GAME_MAX_DIFFFICULTY = 2;
+const float MENU_KEY_PRESS_COOLDOWN = 0.3;
 
+namespace Games {
     void mouse_callback(GLFWwindow* window, double xpos, double ypos);
     void framebuffer_size_callback(GLFWwindow* window, int width, int height);
     void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
@@ -32,10 +34,10 @@ namespace Games {
         public:
             // Game state
             GameState State;
+            int difficulty = 1;
 
             // Score Counter
             int score = 0;
-            TextRenderer scoreDisplay;
 
             Shader *textShader;
 

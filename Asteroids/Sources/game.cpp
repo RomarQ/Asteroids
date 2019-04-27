@@ -5,6 +5,8 @@ namespace Games {
 
     Camera camera;
 
+    TextRenderer *textDisplay;
+
     float lastX = 0;
     float lastY = 0;
     bool firstMouse = true;
@@ -18,10 +20,15 @@ namespace Games {
     */
     float shipRadius = 0.15;
 
+    /*
+    *   Timestamp in seconds with 6 decimal units (0.000000)
+    *   This timestamp allows to delay key press when selecting a difficulty level
+    */
+    float lastKeyPressTimestamp = 0;
+
     Game::Game(float width, float height, GLFWwindow* window) : 
-        State(GAME_ACTIVE),
-        score(0.0),
-        scoreDisplay(width, height)
+        State(GAME_MENU),
+        score(0.0)
     { 
         Width = width;
         Height = height;
@@ -33,6 +40,8 @@ namespace Games {
 
         // capture our mouse
         //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        textDisplay = new TextRenderer(width, height);
     }
 
     Game::~Game()
@@ -53,6 +62,20 @@ namespace Games {
 
     void Game::Render()
     {
+        if (State == GAME_MENU)
+        {
+            textDisplay->renderText("Press ENTER to start", 250.0f, Height / 2, 1.0f);
+            textDisplay->renderText("Press A or D to select level", 245.0f, Height / 2 - 40.0f, 0.75f);
+            textDisplay->renderText(
+                difficulty == 1 ? "Easy" : "Hard",
+                440.0f, 
+                Height / 2 - 120.0f,
+                1.5f, 
+                difficulty == 1 ? glm::vec3(0.0, 0.5, 0.0) : glm::vec3(0.5, 0.0, 0.0)
+            );
+            return;
+        }
+
         Game::checkProjectileCollisions();
         Game::checkAsteroidCollisions();
 
@@ -64,11 +87,34 @@ namespace Games {
         Asteroids::renderAsteroids(Width, Height, camera);
         Projectiles::renderProjectiles(Width, Height, camera);
 
-        scoreDisplay.renderText(std::to_string(score), 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
+        textDisplay->renderText(std::to_string(score), 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
     }
 
     void Game::ProcessInput(GLFWwindow *window)
     {
+        if (State == GAME_MENU) {
+            if (glfwGetTime() < lastKeyPressTimestamp+MENU_KEY_PRESS_COOLDOWN)
+                return;
+
+            if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            {
+                difficulty > 0 ? difficulty-- : difficulty = GAME_MAX_DIFFFICULTY;
+                lastKeyPressTimestamp = glfwGetTime();
+            } 
+            if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            {   
+                difficulty < GAME_MAX_DIFFFICULTY ? difficulty++ : difficulty = 0;
+                lastKeyPressTimestamp = glfwGetTime();
+            }
+            if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+            {   
+                State = GAME_ACTIVE;
+                lastKeyPressTimestamp = glfwGetTime();
+            }
+
+            return;
+        }
+
         if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
             glfwSetWindowShouldClose(window, true);
@@ -252,10 +298,6 @@ namespace Games {
     // ---------------------------------------------------------------------------------------------
     void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     {
-        // make sure the viewport matches the new window dimensions; note that width and 
-        // height will be significantly larger than specified on retina displays.
         glViewport(0, 0, width, height);
-        Width = width;
-        Height = height;
     }
 }

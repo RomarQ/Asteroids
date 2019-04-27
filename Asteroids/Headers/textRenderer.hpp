@@ -22,7 +22,7 @@ namespace TextRenders {
         glm::ivec2 Bearing;     // Offset from baseline to left/top of glyph
         int Advance;            // Horizontal offset to advance to next glyph
     };
-
+    
     class TextRenderer {
         public:
             // Holds a list of pre-compiled Characters
