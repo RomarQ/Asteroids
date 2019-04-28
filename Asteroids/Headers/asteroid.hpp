@@ -19,7 +19,7 @@ const float ASTEROID_MOVEMENT_COOLDOWN = 0.01;
 const float ASTEROID_ROTATION_COOLDOWN = 0.01;
 const float ASTEROID_MOVEMENT_SPEED = 0.01;
 const float ASTEROID_ROTATION_SPEED = 0.1;
-const int ASTEROID_MAX = 1;
+const int ASTEROID_MAX = 30;
 const float ASTEROID_SCALE = 0.00035;
 
 const int asteroidTypes = 1;
@@ -30,7 +30,7 @@ namespace Asteroids {
             Shader shader;
 
         public:
-            int type = 1;
+            float speed = ASTEROID_MOVEMENT_SPEED;
             float angle = 0;
             float rotation = 0;
             float lastMovementTimestamp = 0;
@@ -38,7 +38,7 @@ namespace Asteroids {
             double xOffSet = 0;
             double yOffSet = 0;
 
-            Asteroid(float width, float height, Camera camera);
+            Asteroid(float width, float height, int difficulty, Camera camera);
             ~Asteroid();
 
             bool render(float width, float height, Camera camera);
@@ -52,7 +52,7 @@ namespace Asteroids {
     vector<Asteroid*> * getAsteroids();
     void destroyAll();
 
-    void renderAsteroids(float width, float height, Camera camera);
+    void renderAsteroids(float width, float height, int difficulty, Camera camera);
     bool readyToSpawn();
     AABB asteroidHitbox();
 

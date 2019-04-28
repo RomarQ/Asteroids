@@ -13,8 +13,9 @@
 * [X] Space Ship Projectiles
 * [X] Space Ship vs Asteroid Collision
 * [X] Projectile vs Asteroid Collision
+* [X] Difficulty System
 * [X] Scoring System
-* [ ] Game Start/End Menu
+* [X] Game Start/End Menu
 * [ ] CLEAN ALL SPAGHETTI CODE!!!
   
 ## Summary
@@ -47,11 +48,11 @@ cmake -G "Visual Studio 15 Win64" ..
 Functionality           | Library
 ----------------------- | ------------------------------------------
 Mesh Loading            | [assimp](https://github.com/assimp/assimp)
-Physics                 | [bullet](https://github.com/bulletphysics/bullet3)
 OpenGL Function Loader  | [glad](https://github.com/Dav1dde/glad)
 Windowing and Input     | [glfw](https://github.com/glfw/glfw)
 OpenGL Mathematics      | [glm](https://github.com/g-truc/glm)
 Texture Loading         | [stb](https://github.com/nothings/stb)
+Text Rendering          | [freeType](https://www.freetype.org/)
 
 
 ## Boilerplate Used: [Glitter](https://github.com/Polytonic/Glitter)

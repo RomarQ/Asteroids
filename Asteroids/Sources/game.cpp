@@ -93,7 +93,7 @@ namespace Games {
                 Game::checkShipCollisions();
 
                 spaceShip->render(Width, Height, camera);
-                Asteroids::renderAsteroids(Width, Height, camera);
+                Asteroids::renderAsteroids(Width, Height, difficulty, camera);
                 Projectiles::renderProjectiles(Width, Height, camera);
 
                 textDisplay->renderText(std::to_string(score), 10.0f, 10.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
@@ -286,7 +286,7 @@ namespace Games {
         for (Asteroid *collision : aCollisions) {
             for (long unsigned int i=0; i<asteroids->size(); i++) {
                 if (asteroids->at(i) == collision) {
-                    score += asteroids->at(i)->type;
+                    score += difficulty;
                     asteroids->erase(asteroids->begin()+i);
                     break;
                 }

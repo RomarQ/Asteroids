@@ -25,10 +25,10 @@ namespace Asteroids {
     float max_X = 4.7;
     float max_Y = 2.9;
 
-    Asteroid::Asteroid(float width, float height, Camera camera) : 
+    Asteroid::Asteroid(float width, float height, int difficulty, Camera camera) : 
         shader("../Asteroids/Shaders/asteroid.vs", "../Asteroids/Shaders/asteroid.fs"),
         angle(((double) rand() / RAND_MAX) * 360.0f),
-        type(((double) rand() / RAND_MAX) * asteroidTypes + 1)
+        speed(ASTEROID_MOVEMENT_SPEED * difficulty)
     {
         generateCoordinates();
         //
@@ -118,20 +118,20 @@ namespace Asteroids {
         float radians = glm::radians(angle);
 
         if (angle >= 0 && angle <= 90.f) {
-            xOffSet -= cos(radians) * ASTEROID_MOVEMENT_SPEED;
-            yOffSet -= sin(radians) * ASTEROID_MOVEMENT_SPEED;
+            xOffSet -= cos(radians) * speed;
+            yOffSet -= sin(radians) * speed;
         }
         else if (angle > 90.f && angle <= 180.f) {
-            xOffSet += cos(radians) * -ASTEROID_MOVEMENT_SPEED;
-            yOffSet -= sin(radians) * ASTEROID_MOVEMENT_SPEED;
+            xOffSet += cos(radians) * -speed;
+            yOffSet -= sin(radians) * speed;
         }
         else if (angle > 180.f && angle <= 270.f) {
-            xOffSet += cos(radians) * -ASTEROID_MOVEMENT_SPEED;
-            yOffSet += sin(radians) * -ASTEROID_MOVEMENT_SPEED;
+            xOffSet += cos(radians) * -speed;
+            yOffSet += sin(radians) * -speed;
         }
         else {
-            xOffSet -= cos(radians) * ASTEROID_MOVEMENT_SPEED;
-            yOffSet += sin(radians) * ASTEROID_MOVEMENT_SPEED;
+            xOffSet -= cos(radians) * speed;
+            yOffSet += sin(radians) * speed;
         }
     }
 
@@ -144,12 +144,12 @@ namespace Asteroids {
         return hitBox;
     }
 
-    void renderAsteroids(float width, float height, Camera camera)
+    void renderAsteroids(float width, float height, int difficulty, Camera camera)
     {
         if(Asteroids::asteroids.size() < ASTEROID_MAX && readyToSpawn())
         {
             lastAsteroidTimestamp = glfwGetTime();
-            Asteroids::asteroids.push_back(new Asteroid(width, height, camera));
+            Asteroids::asteroids.push_back(new Asteroid(width, height, difficulty, camera));
         }
 
         for(unsigned int i = 0; i < asteroids.size(); i++)
