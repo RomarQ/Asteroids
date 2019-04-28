@@ -32,6 +32,7 @@ namespace Projectiles {
     void loadModel(string modelPath);
 
     vector<Projectile*> * getProjectiles();
+    void destroyAll();
 
     AABB projectileHitbox();
     void renderProjectiles(float width, float height, Camera camera);

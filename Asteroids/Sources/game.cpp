@@ -49,6 +49,28 @@ namespace Games {
 
     }
 
+    void Game::updateGameState(GameState state) {
+        State = state;
+
+        switch (state) {
+            case GAME_ACTIVE:
+                Asteroids::destroyAll();
+                Projectiles::destroyAll();
+
+                score = 0.0;
+                lives = GAME_MAX_LIVES;
+                spaceShip->xOffSet = 0;
+                spaceShip->yOffSet = 0;
+
+                break;
+            case GAME_MENU:
+                break;
+            case GAME_OVER:
+
+                break;
+        }
+    }
+
     void Game::Init()
     {
         Asteroids::loadModel("../Asteroids/Objects/asteroid/asteroid.obj");
@@ -62,102 +84,141 @@ namespace Games {
 
     void Game::Render()
     {
-        if (State == GAME_MENU)
+        switch (State)
         {
-            textDisplay->renderText("Press ENTER to start", 250.0f, Height / 2, 1.0f);
-            textDisplay->renderText("Press A or D to select level", 245.0f, Height / 2 - 40.0f, 0.75f);
-            textDisplay->renderText(
-                difficulty == 1 ? "Easy" : "Hard",
-                440.0f, 
-                Height / 2 - 120.0f,
-                1.5f, 
-                difficulty == 1 ? glm::vec3(0.0, 0.5, 0.0) : glm::vec3(0.5, 0.0, 0.0)
-            );
-            return;
+            case GAME_ACTIVE:
+
+                Game::checkProjectileCollisions();
+                Game::checkAsteroidCollisions();
+                Game::checkShipCollisions();
+
+                spaceShip->render(Width, Height, camera);
+                Asteroids::renderAsteroids(Width, Height, camera);
+                Projectiles::renderProjectiles(Width, Height, camera);
+
+                textDisplay->renderText(std::to_string(score), 10.0f, 10.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
+
+                textDisplay->renderText("Lives: " + std::to_string(lives), Width - 125.0f, 10.0f, 0.5f, glm::vec3(0.5, 0.5f, 0.0f));
+                break;
+
+            case GAME_MENU:
+
+                textDisplay->renderText("Press ENTER to start", 250.0f, Height / 2, 1.0f);
+                textDisplay->renderText("Press A or D to select level", 245.0f, Height / 2 - 40.0f, 0.75f);
+                textDisplay->renderText(
+                    difficulty == 1 ? "Easy" : "Hard",
+                    440.0f, 
+                    Height / 2 - 120.0f,
+                    1.5f, 
+                    difficulty == 1 ? glm::vec3(0.0, 0.5, 0.0) : glm::vec3(0.5, 0.0, 0.0)
+                );
+                break;
+
+            case GAME_OVER:
+
+                textDisplay->renderText("GAME OVER", 250.0f, Height / 2, 1.0f, glm::vec3(0.0, 0.5, 0.0));
+                textDisplay->renderText("Final Score: " + std::to_string(score), 245.0f, Height / 2 - 40.0f, 0.75f);
+                textDisplay->renderText(
+                    "Press R to go back to menu",
+                    245.0f, 
+                    Height / 2 - 150.0f,
+                    0.5f, 
+                    glm::vec3(0.5, 0.5, 0.0)
+                );
+                break;
+
+            default:
+                break;
         }
-
-        Game::checkProjectileCollisions();
-        Game::checkAsteroidCollisions();
-
-        if(Game::checkShipCollisions()) {
-            std::cout << "ACIDENTE" << std::endl;
-        }
-
-        spaceShip->render(Width, Height, camera);
-        Asteroids::renderAsteroids(Width, Height, camera);
-        Projectiles::renderProjectiles(Width, Height, camera);
-
-        textDisplay->renderText(std::to_string(score), 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
     }
 
     void Game::ProcessInput(GLFWwindow *window)
     {
-        if (State == GAME_MENU) {
-            if (glfwGetTime() < lastKeyPressTimestamp+MENU_KEY_PRESS_COOLDOWN)
-                return;
-
-            if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            {
-                difficulty > 0 ? difficulty-- : difficulty = GAME_MAX_DIFFFICULTY;
-                lastKeyPressTimestamp = glfwGetTime();
-            } 
-            if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            {   
-                difficulty < GAME_MAX_DIFFFICULTY ? difficulty++ : difficulty = 0;
-                lastKeyPressTimestamp = glfwGetTime();
-            }
-            if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
-            {   
-                State = GAME_ACTIVE;
-                lastKeyPressTimestamp = glfwGetTime();
-            }
-
-            return;
-        }
-
-        if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        switch (State)
         {
-            glfwSetWindowShouldClose(window, true);
-        } 
-        if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        {   
-            spaceShip->moveForward();
-        }
-        if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        {   
-            spaceShip->moveBackward();
-        }
-        if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        {   
-            spaceShip->rotateLeft();
-        }
-        if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        {   
-            spaceShip->rotateRight();
-        }
-        if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        {   
-            Projectiles::fireProjectile(Width, Height, spaceShip->xOffSet, spaceShip->yOffSet, spaceShip->angle);
-        }
+            case GAME_ACTIVE:
 
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            camera.ProcessKeyboard(FORWARD, deltaTime);
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            camera.ProcessKeyboard(BACKWARD, deltaTime);
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            camera.ProcessKeyboard(LEFT, deltaTime);
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            camera.ProcessKeyboard(RIGHT, deltaTime);
+                if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+                {
+                    glfwSetWindowShouldClose(window, true);
+                } 
+                if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+                {   
+                    spaceShip->moveForward();
+                }
+                if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+                {   
+                    spaceShip->moveBackward();
+                }
+                if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+                {   
+                    spaceShip->rotateLeft();
+                }
+                if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+                {   
+                    spaceShip->rotateRight();
+                }
+                if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+                {   
+                    Projectiles::fireProjectile(Width, Height, spaceShip->xOffSet, spaceShip->yOffSet, spaceShip->angle);
+                }
 
-        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+                if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+                    camera.ProcessKeyboard(FORWARD, deltaTime);
+                if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+                    camera.ProcessKeyboard(BACKWARD, deltaTime);
+                if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+                    camera.ProcessKeyboard(LEFT, deltaTime);
+                if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+                    camera.ProcessKeyboard(RIGHT, deltaTime);
+
+                if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+
+                break;
+
+            case GAME_MENU:
+
+                if (glfwGetTime() < lastKeyPressTimestamp+MENU_KEY_PRESS_COOLDOWN)
+                    break;
+
+                if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+                {
+                    difficulty > 1 ? difficulty-- : difficulty = GAME_MAX_DIFFFICULTY;
+                    lastKeyPressTimestamp = glfwGetTime();
+                } 
+                if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+                {   
+                    difficulty < GAME_MAX_DIFFFICULTY ? difficulty++ : difficulty = 1;
+                    lastKeyPressTimestamp = glfwGetTime();
+                }
+                if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+                {   
+                    updateGameState(GAME_ACTIVE);
+                    lastKeyPressTimestamp = glfwGetTime();
+                }
+                break;
+
+            case GAME_OVER:
+
+                if (glfwGetTime() < lastKeyPressTimestamp+MENU_KEY_PRESS_COOLDOWN)
+                    break;
+
+                if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+                {
+                    updateGameState(GAME_MENU);
+                    lastKeyPressTimestamp = glfwGetTime();
+                } 
+
+                break;
+        }
     }
 
-    bool Game::checkShipCollisions()
+    void Game::checkShipCollisions()
     {
         vector<Asteroid*> *asteroids = getAsteroids();
 
@@ -165,21 +226,24 @@ namespace Games {
 
         AABB hitBox = asteroidHitbox();
 
-        for (Asteroid * asteroid : *asteroids) {
+        for (unsigned long int i = 0; i < asteroids->size(); i++) {
             
-            float width = abs(asteroid->xOffSet - spaceShip->xOffSet);
-            float height = abs(asteroid->yOffSet - spaceShip->yOffSet);
+            float width = abs(asteroids->at(i)->xOffSet - spaceShip->xOffSet);
+            float height = abs(asteroids->at(i)->yOffSet - spaceShip->yOffSet);
 
             float distance = sqrt(width*width + height*height);
 
             float minDistanceForImpact = hitBox.max.x + shipRadius;
 
             if ( minDistanceForImpact > distance ) {
-                return true;
+                if (lives == 1)
+                    updateGameState(GAME_OVER);
+
+                asteroids->erase(asteroids->begin()+i);
+
+                lives--;
             }
         }
-
-        return false;
     }
 
     void Game::checkProjectileCollisions()

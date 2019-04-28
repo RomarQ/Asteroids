@@ -18,11 +18,12 @@ using namespace SpaceShips;
 enum GameState {
     GAME_ACTIVE,
     GAME_MENU,
-    GAME_WIN
+    GAME_OVER
 };
 
 const int GAME_MAX_DIFFFICULTY = 2;
-const float MENU_KEY_PRESS_COOLDOWN = 0.3;
+const int GAME_MAX_LIVES = 3;
+const float MENU_KEY_PRESS_COOLDOWN = 0.2;
 
 namespace Games {
     void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -36,6 +37,8 @@ namespace Games {
             GameState State;
             int difficulty = 1;
 
+            // Lives counter
+            int lives = GAME_MAX_LIVES;
             // Score Counter
             int score = 0;
 
@@ -56,7 +59,8 @@ namespace Games {
 
             void checkProjectileCollisions();
             void checkAsteroidCollisions();
-            bool checkShipCollisions();
+            void checkShipCollisions();
+            void updateGameState(GameState state);
     };
 }
 

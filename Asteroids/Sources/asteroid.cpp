@@ -67,9 +67,8 @@ namespace Asteroids {
         glBindVertexArray(0);
     }
 
-    Asteroid::~Asteroid()
-    {
-        for (Asteroid *a : asteroids) delete a;
+    Asteroid::~Asteroid() {
+        delete model;
     }
 
     bool Asteroid::render(float width, float height, Camera camera)
@@ -215,5 +214,11 @@ namespace Asteroids {
     vector<Asteroid*> * getAsteroids()
     {
         return &asteroids;
+    }
+
+    void destroyAll()
+    {
+        for (unsigned long int i = 0; i < asteroids.size(); i++)
+            asteroids.erase(asteroids.begin()+i);
     }
 }

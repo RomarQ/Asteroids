@@ -50,6 +50,7 @@ namespace Asteroids {
     void loadModel(string modelPath);
 
     vector<Asteroid*> * getAsteroids();
+    void destroyAll();
 
     void renderAsteroids(float width, float height, Camera camera);
     bool readyToSpawn();

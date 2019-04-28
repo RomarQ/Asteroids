@@ -71,10 +71,8 @@ namespace Projectiles {
         }
     }
 
-    Projectile::~Projectile()
-    {
+    Projectile::~Projectile() {
         delete model;
-        for (Projectile *p : projectiles) delete p;
     }
 
     bool Projectile::render(float width, float height, Camera camera)
@@ -152,5 +150,11 @@ namespace Projectiles {
     vector<Projectile*> * getProjectiles()
     {
         return &projectiles;
+    }
+
+    void destroyAll()
+    {
+        for (unsigned long int i = 0; i < projectiles.size(); i++)
+            projectiles.erase(projectiles.begin()+i);
     }
 }
