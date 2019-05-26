@@ -4,6 +4,12 @@
 #include "shader.hpp"
 #include "camera.hpp"
 #include "model.hpp"
+#include <GLFW/glfw3.h>
+
+const float SHIP_MOVEMENT_COOLDOWN = 0.01f;
+const float SHIP_ROTATION_COOLDOWN = 0.01f;
+const float SHIP_MOVEMENT_SPEED = 0.04f;
+const float SHIP_ROTATION_SPEED = 0.1f;
 
 namespace SpaceShips {
 
@@ -13,8 +19,10 @@ namespace SpaceShips {
         private:
             Shader shader;
 
-            float speed = 0.025f;
-            float rotation_speed = 0.07; // radians
+            float speed = SHIP_MOVEMENT_SPEED;
+            float rotationSpeed = SHIP_ROTATION_SPEED;
+            float lastMovementTimestamp = 0;
+            float lastRotationTimestamp = 0;
 
             glm::mat4* modelMatrix = new glm::mat4;
 

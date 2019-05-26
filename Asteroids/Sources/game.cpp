@@ -7,14 +7,6 @@ namespace Games {
 
     TextRenderer *textDisplay;
 
-    float lastX = 0;
-    float lastY = 0;
-    bool firstMouse = true;
-
-    // timing
-    float deltaTime = 0.0f;
-    float lastFrame = 0.0f;
-
     /*
     *   Object radius
     */
@@ -35,11 +27,6 @@ namespace Games {
         camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f));
 
         glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-        glfwSetCursorPosCallback(window, mouse_callback);
-        glfwSetScrollCallback(window, scroll_callback);
-
-        // capture our mouse
-        //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         textDisplay = new TextRenderer(width, height);
     }
@@ -162,15 +149,6 @@ namespace Games {
                 {   
                     Projectiles::fireProjectile(Width, Height, spaceShip->xOffSet, spaceShip->yOffSet, spaceShip->angle);
                 }
-
-                if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-                    camera.ProcessKeyboard(FORWARD, deltaTime);
-                if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-                    camera.ProcessKeyboard(BACKWARD, deltaTime);
-                if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-                    camera.ProcessKeyboard(LEFT, deltaTime);
-                if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-                    camera.ProcessKeyboard(RIGHT, deltaTime);
 
                 if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
                     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -313,8 +291,8 @@ namespace Games {
 
                 float minDistanceForImpact = 2*hitBox.max.x;
 
-                if ( minDistanceForImpact > distance ) {
-                    //FORMULA: 2*(V dot N)*N - V
+                if ( minDistanceForImpact >= distance ) {
+                    // FORMULA: 2*(V dot N)*N - V
                     glm::vec2 vecA1 = glm::vec2(cos(asteroids->at(a1)->angle), sin(asteroids->at(a1)->angle));
                     glm::vec2 vecA2 = glm::vec2(cos(asteroids->at(a2)->angle), sin(asteroids->at(a2)->angle));
                     glm::vec2 nVecA1 = 2*glm::dot(vecA1, vecA2)*vecA2-vecA1;
@@ -329,33 +307,6 @@ namespace Games {
 
     int PositiveAngle(int angle) {
         return angle < 0 ? 360+angle : angle;
-    }
-
-    // glfw: whenever the mouse moves, this callback is called
-    // -------------------------------------------------------
-    void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-    {
-        if (firstMouse)
-        {
-            lastX = xpos;
-            lastY = ypos;
-            firstMouse = false;
-        }
-
-        float xoffset = xpos - lastX;
-        float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-        lastX = xpos;
-        lastY = ypos;
-
-        camera.ProcessMouseMovement(xoffset, yoffset);
-    }
-
-    // glfw: whenever the mouse scroll wheel scrolls, this callback is called
-    // ----------------------------------------------------------------------
-    void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-    {
-        camera.ProcessMouseScroll(yoffset);
     }
 
     // glfw: whenever the window size changed (by OS or user resize) this callback function executes

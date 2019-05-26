@@ -13,8 +13,6 @@ typedef struct aabb
 
 namespace Collision {
     AABB getAABB(const Mesh& mesh, double scale);
-
-    bool Collides(AABB a, AABB b);
 }
 
 #endif

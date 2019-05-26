@@ -16,13 +16,4 @@ namespace Collision {
 
         return hitBox;
     }
-
-    bool Collides(const AABB a, const AABB b) {
-        int meetingAxies = 0;
-
-        if ( (b.min.x > a.min.x) && (b.min.x < a.max.x) ) meetingAxies++;
-        if ( (b.min.y > a.min.y) && (b.min.y < a.max.y) ) meetingAxies++;
-
-        return meetingAxies == 2;
-    }
 }

@@ -11,11 +11,19 @@
 
 namespace SpaceShips {
     /*
-        * Ship Model
-        */
+    * Ship Model
+    */
     Model *model;
 
-    //
+    /*
+    * Timestamp in seconds with 6 decimal units (0.000000)
+    * This timestamp allows to know when to spawn a new asteroid
+    */
+    float lastAsteroidTimestamp = 0;
+
+    /*
+    * max x,z coordinates based on screen ration
+    */
     float max_X = 4.5;
     float max_Y = 2.5;
 
@@ -26,8 +34,8 @@ namespace SpaceShips {
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.006, 0.006, 0.006));
 
         /*
-                * Buffer configuration
-                */
+        * Buffer configuration
+        */
         unsigned int buffer;
         glGenBuffers(1, &buffer);
         glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -37,7 +45,7 @@ namespace SpaceShips {
         {
             unsigned int VAO = model->meshes[i].VAO;
             glBindVertexArray(VAO);
-            // set attribute pointers for matrix (4 times vec4)
+
             glEnableVertexAttribArray(3);
             glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
             glEnableVertexAttribArray(4);
@@ -93,7 +101,11 @@ namespace SpaceShips {
     }
 
     void SpaceShip::moveForward()
-    { 
+    {
+        if ((lastMovementTimestamp+SHIP_MOVEMENT_COOLDOWN) > glfwGetTime()) return;
+
+        lastMovementTimestamp = glfwGetTime();
+
         xOffSet += cos(angle) * speed;
         yOffSet += sin(angle) * speed;
 
@@ -105,6 +117,10 @@ namespace SpaceShips {
 
     void SpaceShip::moveBackward()
     {
+        if ((lastMovementTimestamp+SHIP_MOVEMENT_COOLDOWN) > glfwGetTime()) return;
+
+        lastMovementTimestamp = glfwGetTime();
+
         xOffSet -= cos(angle) * speed;
         yOffSet -= sin(angle) * speed;
     
@@ -129,12 +145,18 @@ namespace SpaceShips {
 
     void SpaceShip::rotateLeft()
     {
-        angle += rotation_speed;
+        if ((lastRotationTimestamp+SHIP_ROTATION_COOLDOWN) > glfwGetTime()) return;
+
+        lastRotationTimestamp = glfwGetTime();
+        angle += rotationSpeed;
     }
 
     void SpaceShip::rotateRight()
     {
-        angle -= rotation_speed;
+        if ((lastRotationTimestamp+SHIP_ROTATION_COOLDOWN) > glfwGetTime()) return;
+
+        lastRotationTimestamp = glfwGetTime();
+        angle -= rotationSpeed;
     }
 
     void SpaceShip::use() const

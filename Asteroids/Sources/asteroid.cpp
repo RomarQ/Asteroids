@@ -20,7 +20,7 @@ namespace Asteroids {
     */
     AABB hitBox;
     /*
-    * max x,z coordinates based on screen ration
+    * max x,z coordinates based on screen ratio
     */
     float max_X = 4.7;
     float max_Y = 2.9;

@@ -25,7 +25,6 @@ int main() {
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     #endif
 
-    //glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     GLFWwindow* window = glfwCreateWindow(mWidth, mHeight, APP_TITLE, nullptr, nullptr);
 
     // Check for Valid Context
@@ -77,7 +76,6 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         game.Render();
-
         // } End of Render Logic
 
         // Flip Buffers and Draw

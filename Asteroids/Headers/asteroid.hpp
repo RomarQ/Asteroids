@@ -14,14 +14,18 @@
 #include "collision.hpp"
 using namespace Collision;
 
-const float ASTEROID_SPAWN_COOLDOWN = 1;
+const float ASTEROID_SPAWN_COOLDOWN = 0.5;
 const float ASTEROID_MOVEMENT_COOLDOWN = 0.01;
 const float ASTEROID_ROTATION_COOLDOWN = 0.01;
-const float ASTEROID_MOVEMENT_SPEED = 0.01;
+const float ASTEROID_MOVEMENT_SPEED = 0.03;
 const float ASTEROID_ROTATION_SPEED = 0.1;
 const int ASTEROID_MAX = 30;
 const float ASTEROID_SCALE = 0.00035;
 
+/*
+*   Removed multiple kinds of asteroids
+*   Maybe will be added again in a future version
+*/
 const int asteroidTypes = 1;
 
 namespace Asteroids {
@@ -55,7 +59,6 @@ namespace Asteroids {
     void renderAsteroids(float width, float height, int difficulty, Camera camera);
     bool readyToSpawn();
     AABB asteroidHitbox();
-
 }
 
 #endif

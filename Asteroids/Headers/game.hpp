@@ -26,9 +26,7 @@ const int GAME_MAX_LIVES = 3;
 const float MENU_KEY_PRESS_COOLDOWN = 0.2;
 
 namespace Games {
-    void mouse_callback(GLFWwindow* window, double xpos, double ypos);
     void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-    void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
     int PositiveAngle(int angle);
 
     class Game {
