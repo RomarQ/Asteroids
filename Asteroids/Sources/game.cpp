@@ -43,8 +43,8 @@ namespace Games {
                 lives = GAME_MAX_LIVES;
                 spaceShip->xOffSet = 0;
                 spaceShip->yOffSet = 0;
-
                 break;
+                
             case GAME_MENU:
                 break;
             case GAME_OVER:

@@ -93,7 +93,7 @@ namespace Asteroids {
 
         // configure transformation matrices
         glm::mat4 projection = glm::perspective(glm::radians(45.f), width / height, 0.1f, 1000.0f);
-        projection = glm::translate(projection, glm::vec3(xOffSet, yOffSet, 0.0f));
+        projection = glm::translate(projection, glm::vec3(xOffSet, yOffSet-0.3, 0.0f));
         glm::mat4 view = glm::lookAt(
             glm::vec3(0.0f, 6.0f, 0.0f), // Looking from top
             glm::vec3(0.0f, 0.0f, 0.0f),

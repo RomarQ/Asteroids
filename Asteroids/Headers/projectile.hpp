@@ -9,7 +9,8 @@
 using namespace Collision;
 
 const float PROJECTILE_SPEED = 0.07;
-const float PROJECTILE_COOLDOWN = 0.4;
+const float PROJECTILE_SPAWN_COOLDOWN = 0.4;
+const float PROJECTILE_MOVEMENT_COOLDOWN = 0.0003;
 const float PROJECTILE_SCALE = 0.05;
 
 namespace Projectiles {
@@ -21,6 +22,7 @@ namespace Projectiles {
             float angle = 0.0;
             float xOffSet = 0.0;
             float yOffSet = 0.0;
+            float projectileMovementTimestamp = 0;
 
             Projectile(float width, float height, float x, float y, float angle);
             ~Projectile();

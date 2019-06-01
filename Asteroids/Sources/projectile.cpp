@@ -107,6 +107,11 @@ namespace Projectiles {
 
     void Projectile::dislocateProjectile()
     {
+        if (projectileMovementTimestamp+PROJECTILE_MOVEMENT_COOLDOWN > glfwGetTime())
+            return;
+        
+        projectileMovementTimestamp = glfwGetTime();
+
         xOffSet += cos(angle) * PROJECTILE_SPEED;
         yOffSet += sin(angle) * PROJECTILE_SPEED;
         
@@ -144,7 +149,7 @@ namespace Projectiles {
 
     bool readyToFire()
     {
-        return (glfwGetTime() > lastProjectileTimestamp+PROJECTILE_COOLDOWN);
+        return (glfwGetTime() > lastProjectileTimestamp+PROJECTILE_SPAWN_COOLDOWN);
     }
 
     vector<Projectile*> * getProjectiles()
