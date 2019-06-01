@@ -35,16 +35,20 @@ namespace Asteroids {
 
         public:
             float speed = ASTEROID_MOVEMENT_SPEED;
-            float angle = 0;
-            float rotation = 0;
+            float angle = 0;    // radians
+            float rotation = 0; // radians
             float lastMovementTimestamp = 0;
             float lastRotationTimestamp = 0;
             double xOffSet = 0;
             double yOffSet = 0;
 
             Asteroid(float width, float height, int difficulty, Camera camera);
+            // For Collision Testing
+            Asteroid(float width, float height, int difficulty, Camera camera, float angle);
+
             ~Asteroid();
 
+            void init();
             bool render(float width, float height, Camera camera);
             void dislocateAsteroid();
             void rotateAsteroid();
@@ -57,6 +61,7 @@ namespace Asteroids {
     void destroyAll();
 
     void renderAsteroids(float width, float height, int difficulty, Camera camera);
+    void renderTest(float width, float height, int difficulty, Camera camera, float angle);
     bool readyToSpawn();
     AABB asteroidHitbox();
 }

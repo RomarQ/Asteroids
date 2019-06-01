@@ -27,11 +27,26 @@ namespace Asteroids {
 
     Asteroid::Asteroid(float width, float height, int difficulty, Camera camera) : 
         shader("../Asteroids/Shaders/asteroid.vs", "../Asteroids/Shaders/asteroid.fs"),
-        angle(((double) rand() / RAND_MAX) * 360.0f),
+        angle(glm::radians(((double) rand() / RAND_MAX) * 360.0f)),
         speed(ASTEROID_MOVEMENT_SPEED * difficulty)
     {
+        init();
+    }
+
+    Asteroid::Asteroid(float width, float height, int difficulty, Camera camera, float angle) : 
+        shader("../Asteroids/Shaders/asteroid.vs", "../Asteroids/Shaders/asteroid.fs"),
+        angle(angle),
+        speed(ASTEROID_MOVEMENT_SPEED * difficulty)
+    {
+        init();
+    }
+    
+    Asteroid::~Asteroid() {
+        delete model;
+    }
+
+    void Asteroid::init() {
         generateCoordinates();
-        //
         shader.use();
         glm::mat4 modelMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(ASTEROID_SCALE, ASTEROID_SCALE, ASTEROID_SCALE));
         shader.setMat4("modelMatrix", modelMatrix);
@@ -67,10 +82,6 @@ namespace Asteroids {
         glBindVertexArray(0);
     }
 
-    Asteroid::~Asteroid() {
-        delete model;
-    }
-
     bool Asteroid::render(float width, float height, Camera camera)
     {
         // activate shader
@@ -82,7 +93,7 @@ namespace Asteroids {
 
         // configure transformation matrices
         glm::mat4 projection = glm::perspective(glm::radians(45.f), width / height, 0.1f, 1000.0f);
-        projection = glm::translate(projection, glm::vec3(xOffSet, yOffSet-0.3, 0.0f));
+        projection = glm::translate(projection, glm::vec3(xOffSet, yOffSet, 0.0f));
         glm::mat4 view = glm::lookAt(
             glm::vec3(0.0f, 6.0f, 0.0f), // Looking from top
             glm::vec3(0.0f, 0.0f, 0.0f),
@@ -104,8 +115,9 @@ namespace Asteroids {
     void Asteroid::rotateAsteroid()
     {
         if ((lastRotationTimestamp+ASTEROID_ROTATION_COOLDOWN) > glfwGetTime()) return;
+
         lastRotationTimestamp = glfwGetTime();
-        rotation += ASTEROID_ROTATION_SPEED;
+        rotation = rotation >= glm::pi<float>()*2 ? .0f : rotation + ASTEROID_ROTATION_SPEED;
     }
 
     void Asteroid::dislocateAsteroid()
@@ -115,24 +127,8 @@ namespace Asteroids {
         
         lastMovementTimestamp = glfwGetTime();
 
-        float radians = glm::radians(angle);
-
-        if (angle >= 0 && angle <= 90.f) {
-            xOffSet -= cos(radians) * speed;
-            yOffSet -= sin(radians) * speed;
-        }
-        else if (angle > 90.f && angle <= 180.f) {
-            xOffSet += cos(radians) * -speed;
-            yOffSet -= sin(radians) * speed;
-        }
-        else if (angle > 180.f && angle <= 270.f) {
-            xOffSet += cos(radians) * -speed;
-            yOffSet += sin(radians) * -speed;
-        }
-        else {
-            xOffSet -= cos(radians) * speed;
-            yOffSet += sin(radians) * speed;
-        }
+        xOffSet += glm::cos(angle) * ASTEROID_MOVEMENT_SPEED;
+        yOffSet += glm::sin(angle) * ASTEROID_MOVEMENT_SPEED;
     }
 
     void loadModel(string modelPath) {
@@ -161,54 +157,42 @@ namespace Asteroids {
         }
     }
 
+    void renderTest(float width, float height, int difficulty, Camera camera, float angle)
+    {
+        if(Asteroids::asteroids.size() == 0)
+        {
+            Asteroids::asteroids.push_back(new Asteroid(width, height, difficulty, camera, angle));
+            Asteroids::asteroids.push_back(new Asteroid(width, height, difficulty, camera, angle+(glm::pi<float>())));
+
+            Asteroids::asteroids.push_back(new Asteroid(width, height, difficulty, camera, angle+=(glm::pi<float>()/4)));
+            Asteroids::asteroids.push_back(new Asteroid(width, height, difficulty, camera, angle+(glm::pi<float>())));
+
+            Asteroids::asteroids.push_back(new Asteroid(width, height, difficulty, camera, angle+=(glm::pi<float>()/4)));
+            Asteroids::asteroids.push_back(new Asteroid(width, height, difficulty, camera, angle+(glm::pi<float>())));
+
+            Asteroids::asteroids.push_back(new Asteroid(width, height, difficulty, camera, angle+=(glm::pi<float>()/4)));
+            Asteroids::asteroids.push_back(new Asteroid(width, height, difficulty, camera, angle+(glm::pi<float>())));
+        }
+
+        for(unsigned int i = 0; i < asteroids.size(); i++)
+        {
+            Asteroid *asteroid = asteroids.at(i);
+            if(!asteroid->render(width, height, camera)) {
+                asteroids.erase(asteroids.begin()+i);
+            }
+        }
+    }
+
     bool readyToSpawn()
     {
         return (glfwGetTime() > lastAsteroidTimestamp+ASTEROID_SPAWN_COOLDOWN);
     }
 
     void Asteroid::generateCoordinates()
-    {
-        double random = ((double) rand() / RAND_MAX);
-        if (angle >= 0 && angle <= 90.f) {
-            if (angle > 45.f) {
-                yOffSet = max_Y;
-                xOffSet = random * max_X;
-            }
-            else {
-                yOffSet = random * max_Y;
-                xOffSet = max_X;
-            }
-        }
-        else if (angle > 90.f && angle <= 180.f) {
-            if (angle > 135.f) {
-                yOffSet = random * max_Y;
-                xOffSet = -max_X;
-            }
-            else {
-                yOffSet = max_Y;
-                xOffSet = random * -max_X;
-            }
-        }
-        else if (angle > 180.f && angle <= 270.f) {
-            if (angle > 225.f) {
-                yOffSet = -max_Y;
-                xOffSet = random * -max_X;
-            }
-            else {
-                yOffSet = random * -max_Y;
-                xOffSet = -max_X;
-            }
-        }
-        else {
-            if (angle > 315.f) {
-                yOffSet = random * -max_Y;
-                xOffSet = max_X;
-            }
-            else {
-                yOffSet = -max_Y;
-                xOffSet = random * max_X;
-            }
-        }
+    {       
+        xOffSet = glm::cos(angle)*max_X;
+        yOffSet = glm::sin(angle)*max_Y;
+        angle += glm::pi<float>();
     }
 
     vector<Asteroid*> * getAsteroids()
@@ -217,8 +201,7 @@ namespace Asteroids {
     }
 
     void destroyAll()
-    {
-        for (unsigned long int i = 0; i < asteroids.size(); i++)
-            asteroids.erase(asteroids.begin()+i);
+    {   
+        asteroids.clear();
     }
 }

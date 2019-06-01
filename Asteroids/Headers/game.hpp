@@ -18,7 +18,8 @@ using namespace SpaceShips;
 enum GameState {
     GAME_ACTIVE,
     GAME_MENU,
-    GAME_OVER
+    GAME_OVER,
+    GAME_TEST
 };
 
 const int GAME_MAX_DIFFFICULTY = 2;

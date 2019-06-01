@@ -154,7 +154,6 @@ namespace Projectiles {
 
     void destroyAll()
     {
-        for (unsigned long int i = 0; i < projectiles.size(); i++)
-            projectiles.erase(projectiles.begin()+i);
+        projectiles.clear();
     }
 }

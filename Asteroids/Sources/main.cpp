@@ -78,7 +78,7 @@ int main() {
         game.Render();
         // } End of Render Logic
 
-        // Flip Buffers and Draw
+        // Swap Buffers and Draw
         glfwSwapBuffers(window);
         // Check and Call Events
         glfwPollEvents();

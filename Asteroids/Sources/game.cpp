@@ -8,7 +8,7 @@ namespace Games {
     TextRenderer *textDisplay;
 
     /*
-    *   Object radius
+    *   Ship radius
     */
     float shipRadius = 0.15;
 
@@ -31,18 +31,13 @@ namespace Games {
         textDisplay = new TextRenderer(width, height);
     }
 
-    Game::~Game()
-    {
-
-    }
+    Game::~Game() {}
 
     void Game::updateGameState(GameState state) {
         State = state;
 
         switch (state) {
             case GAME_ACTIVE:
-                Asteroids::destroyAll();
-                Projectiles::destroyAll();
 
                 score = 0.0;
                 lives = GAME_MAX_LIVES;
@@ -53,7 +48,6 @@ namespace Games {
             case GAME_MENU:
                 break;
             case GAME_OVER:
-
                 break;
         }
     }
@@ -64,8 +58,9 @@ namespace Games {
         SpaceShips::loadModel("../Asteroids/Objects/spaceship/spaceship.obj");
         Projectiles::loadModel("../Asteroids/Objects/projectile/projectile.obj");
 
-        // build and compile the Space Ship
-        // ------------------------------------
+        /*
+        *   Build and compile the Space Ship
+        */
         spaceShip = new SpaceShip("../Asteroids/Shaders/space_ship.vs", "../Asteroids/Shaders/space_ship.fs");
     }
 
@@ -86,6 +81,12 @@ namespace Games {
                 textDisplay->renderText(std::to_string(score), 10.0f, 10.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
 
                 textDisplay->renderText("Lives: " + std::to_string(lives), Width - 125.0f, 10.0f, 0.5f, glm::vec3(0.5, 0.5f, 0.0f));
+                
+                if(State == GAME_OVER) {
+                    Asteroids::destroyAll();
+                    Projectiles::destroyAll();
+                }
+
                 break;
 
             case GAME_MENU:
@@ -114,6 +115,13 @@ namespace Games {
                 );
                 break;
 
+            case GAME_TEST:
+            
+                Game::checkAsteroidCollisions();
+                Asteroids::renderTest(Width, Height, difficulty, camera, .0f);
+
+                break;
+
             default:
                 break;
         }
@@ -121,10 +129,8 @@ namespace Games {
 
     void Game::ProcessInput(GLFWwindow *window)
     {
-        switch (State)
-        {
+        switch (State) {
             case GAME_ACTIVE:
-
                 if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
                 {
                     glfwSetWindowShouldClose(window, true);
@@ -146,23 +152,26 @@ namespace Games {
                     spaceShip->rotateRight();
                 }
                 if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-                {   
+                {
                     Projectiles::fireProjectile(Width, Height, spaceShip->xOffSet, spaceShip->yOffSet, spaceShip->angle);
                 }
 
-                if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-
                 break;
-
             case GAME_MENU:
 
                 if (glfwGetTime() < lastKeyPressTimestamp+MENU_KEY_PRESS_COOLDOWN)
                     break;
+
+                if(glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
+                {   
+                    updateGameState(GAME_TEST);
+                    lastKeyPressTimestamp = glfwGetTime();
+                }
+                if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+                {   
+                    updateGameState(GAME_ACTIVE);
+                    lastKeyPressTimestamp = glfwGetTime();
+                }
 
                 if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
                 {
@@ -174,19 +183,27 @@ namespace Games {
                     difficulty < GAME_MAX_DIFFFICULTY ? difficulty++ : difficulty = 1;
                     lastKeyPressTimestamp = glfwGetTime();
                 }
-                if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
-                {   
-                    updateGameState(GAME_ACTIVE);
-                    lastKeyPressTimestamp = glfwGetTime();
-                }
+               
                 break;
 
             case GAME_OVER:
-
+                
                 if (glfwGetTime() < lastKeyPressTimestamp+MENU_KEY_PRESS_COOLDOWN)
                     break;
 
                 if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+                {
+                    updateGameState(GAME_MENU);
+                    lastKeyPressTimestamp = glfwGetTime();
+                } 
+
+                break;
+            case GAME_TEST:
+
+                if (glfwGetTime() < lastKeyPressTimestamp+MENU_KEY_PRESS_COOLDOWN)
+                    break;
+
+                if(glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
                 {
                     updateGameState(GAME_MENU);
                     lastKeyPressTimestamp = glfwGetTime();
@@ -292,14 +309,23 @@ namespace Games {
                 float minDistanceForImpact = 2*hitBox.max.x;
 
                 if ( minDistanceForImpact >= distance ) {
-                    // FORMULA: 2*(V dot N)*N - V
-                    glm::vec2 vecA1 = glm::vec2(cos(asteroids->at(a1)->angle), sin(asteroids->at(a1)->angle));
-                    glm::vec2 vecA2 = glm::vec2(cos(asteroids->at(a2)->angle), sin(asteroids->at(a2)->angle));
-                    glm::vec2 nVecA1 = 2*glm::dot(vecA1, vecA2)*vecA2-vecA1;
-                    glm::vec2 nVecA2 = 2*glm::dot(vecA2, vecA1)*vecA1-vecA2;
+                    // FORMULA: V - 2*(V dot N)*N
 
-                    asteroids->at(a1)->angle = glm::degrees(acos(nVecA1.x));
-                    asteroids->at(a2)->angle = glm::degrees(acos(nVecA2.x));
+                    glm::vec2 vecA1 = glm::vec2(glm::cos(asteroids->at(a1)->angle), glm::sin(asteroids->at(a1)->angle));
+                    glm::vec2 vecA2 = glm::vec2(glm::cos(asteroids->at(a2)->angle), glm::sin(asteroids->at(a2)->angle));
+                    // Normalized Vectors
+                    glm::vec2 nVecA1 = glm::normalize(vecA1 - vecA2);
+                    glm::vec2 nVecA2 = glm::normalize(vecA2 - vecA1);
+
+                    // Alternative -> glm::reflect(vecA1, nVecA1)
+                    glm::vec2 newVecA1 = vecA1 - 2*glm::dot(vecA1, nVecA1)*nVecA1;
+
+                    // Alternative -> glm::reflect(vecA2, nVecA2)
+                    glm::vec2 newVecA2 = vecA2 - 2*glm::dot(vecA2, nVecA2)*nVecA2;
+                    
+                    // Update angles
+                    asteroids->at(a1)->angle = glm::atan(newVecA1.y, newVecA1.x);
+                    asteroids->at(a2)->angle = glm::atan(newVecA2.y, newVecA2.x);
                 }
             }
         }

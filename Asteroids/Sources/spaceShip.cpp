@@ -78,7 +78,7 @@ namespace SpaceShips {
         // configure transformation matrices
         glm::mat4 projection = glm::perspective(glm::radians(45.f), width / height, 0.1f, 1000.0f);
         projection = glm::translate(projection, glm::vec3(xOffSet, yOffSet, 0.0f));
-        projection = glm::rotate(projection, angle+glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
+        projection = glm::rotate(projection, angle+glm::radians(90.f), glm::vec3(0.0, 0.0, 1.0));
         projection = glm::translate(projection, glm::vec3(-xOffSet, -yOffSet, 0.0f));
         projection = glm::translate(projection, glm::vec3(xOffSet, yOffSet, 0.0f));
         glm::mat4 view = glm::lookAt(
@@ -89,15 +89,8 @@ namespace SpaceShips {
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
 
-        // draw asteroid
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, model->textures_loaded[0].id);
-        for (unsigned int i = 0; i < model->meshes.size(); i++)
-        {
-            glBindVertexArray(model->meshes[i].VAO);
-            glDrawElements(GL_TRIANGLES, model->meshes[i].indices.size(), GL_UNSIGNED_INT, 0);
-            glBindVertexArray(0);
-        }
+        // Draw Ship
+        model->Draw(shader);
     }
 
     void SpaceShip::moveForward()
